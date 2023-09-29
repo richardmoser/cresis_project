@@ -1,7 +1,0 @@
-
-Dpython:S1481"%Remove the unused local variable "j".(¾È‰8Â¯®1
-hpython:S5644"DFix this code; this expression does not have a "__getitem__" method.(ı§ğıÿÿÿÿ8Â¯®1
-Wpython:S905":Remove or refactor this statement; it has no side effects.(Ğ±†p8Ã¯®1
-=python:S125."Remove this commented out code.(èĞ¡è8Ã¯®1
-Bpython:S125G"Remove this commented out code.(—íƒøÿÿÿÿ8Ã¯®1
-Bpython:S125W"Remove this commented out code.(Ã×òüÿÿÿÿ8Ã¯®1
