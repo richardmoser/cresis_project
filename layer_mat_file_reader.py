@@ -4,7 +4,7 @@
 
 import scipy.io as sio
 import numpy as np
-from layer import Layer
+from layer_class import Layer
 
 def layerize(mat):
     """
