@@ -4,27 +4,36 @@
 
 import scipy.io as sio
 import numpy as np
+import pickle
+import matplotlib.pyplot as plt
+
 from layer_class import Layer
 
-def layerize(mat):
+save = False
+
+def layerize(data_mat, attribute_mat):
     """
-    :param mat: a mat file
+    :param data_mat: a mat file containing the data for each segment
+    :param attribute_mat: a mat file containing the attributes of each layer
     :return: a list of Layer objects
     """
     layers = []
-
-    # mat has the format mat[file_number][key][layer_number]
-    # e.g. mat[0]['layers'][0] is the first layer in the first mat file and mat[1]['layers'][0] is the first layer in the second mat file
-    # a Layer object should be made by sequentially appending the values for each layer from each mat file
-
     # iterate through each mat file
-    no_files = len(mat)
-    no_layers = len(mat[0]['twtt']) - 1
+    no_files = len(data_mat)
+    no_layers = len(data_mat[0]['twtt']) - 1
+    print("Layerizing data files...")
     print("--------------------")
-    print(f"number of files: {no_files}, number of layers: {no_layers}")
+    print(f"number of data files: {no_files}, number of layers: {no_layers}")
     # print("debug:")
+    # print(f"layer name: {mat[0]['name']}")
+
+    # print(attribute_mat['lyr_name'][0][0])
+    # print(attribute_mat['lyr_name'][0][0][0])
+    # print("--------------------\n")
 
     for i in range(no_layers):
+        layer_name = attribute_mat['lyr_name'][0][i][0]
+        # print(f"layer name: {layer_name}")
         elevation = np.array([])
         gps_time = np.array([])
         id = np.array([])
@@ -35,62 +44,102 @@ def layerize(mat):
         twtt = np.array([])
         type = np.array([])
 
+
         for j in range(no_files):
-            elevation = np.append(elevation, mat[j]['elev'])
-            gps_time = np.append(gps_time, mat[j]['gps_time'])
-            id = np.append(id, mat[j]['id'])
-            lat = np.append(lat, mat[j]['lat'])
-            lon = np.append(lon, mat[j]['lon'])
+
+            elevation = np.append(elevation, data_mat[j]['elev'])
+            gps_time = np.append(gps_time, data_mat[j]['gps_time'])
+            id = np.append(id, data_mat[j]['id'])
+            lat = np.append(lat, data_mat[j]['lat'])
+            lon = np.append(lon, data_mat[j]['lon'])
             # TODO: figure out what param is and how to handle it.
             # it seems to be some kind of data structure in and of itself (csv or similar?)
             # param = np.append(param, mat[j]['param'])
-            quality = np.append(quality, mat[j]['quality'])
-            twtt = np.append(twtt, mat[j]['twtt'][i])
+            quality = np.append(quality, data_mat[j]['quality'])
+            twtt = np.append(twtt, data_mat[j]['twtt'][i])
             # print(f"twtt length: {twtt.shape}")
-            type = np.append(type, mat[j]['type'])
+            type = np.append(type, data_mat[j]['type'])
 
         # create a Layer object
-        layers.append(Layer(elevation, gps_time, id, lat, lon, param, quality, twtt, type))
+        layers.append(Layer(layer_name, elevation, gps_time, id, lat, lon, param, quality, twtt, type))
+        print(f"{layers[i].layer_name} Layer found and created")
 
+    print("--------------------\n")
     return layers
 
 
 
-# load the mat files
-# mat = sio.loadmat('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_'
-#                   'Antarctica_DC8\\CSARP_layer\\20181030_01\\layer_'
-#                   '20181030_01.mat')
+print("Reading data files...")
+print("--------------------")
+# set the directory, segment data file, layer attributes file, and start and end frames
 dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181030_01\\')
-segment = 'Data_20181030_01_'
+segment_data_file = 'Data_20181030_01_'
+# contains all of the actual data such as twtt, lat, lon, etc.
+layer_attributes_file = 'layer_20181030_01.mat'
+# contains the attributes of the layer such as name, param, etc.
 startframe = '001'
 endframe = '016'
-# mat = sio.loadmat(dir + segment + startframe + '.mat')
 
 # load an array of mat files
-mat = np.array([sio.loadmat(dir + segment + str(i).zfill(3) + '.mat')
-                for i in range(int(startframe), int(endframe)+1)])
+data_mat = np.array([sio.loadmat(dir + segment_data_file + str(i).zfill(3) + '.mat')
+                     for i in range(int(startframe), int(endframe)+1)])
+attribute_mat = sio.loadmat(dir + layer_attributes_file)
 
 # print the keys as strings without all the extra stuff
-keys = [str(key).strip("_") for key in mat[0].keys()]
-print(f"mat file keys:")
+keys = [str(key).strip("_") for key in data_mat[0].keys()]
+print(f"DATA MAT FILE KEYS:")
 for key in keys:
     print(key, end="")
     # if not last key, print a comma
     if key != keys[-1]:
         print(",", end=" ")
-print("\n")
+# print("\n")
+# print the keys in the layer attributes mat file
+print(f"\nLAYER ATTRIBUTES MAT FILE KEYS:")
+keys = [str(key).strip("_") for key in attribute_mat.keys()]
+for key in keys:
+    print(key, end="")
+    # if not last key, print a comma
+    if key != keys[-1]:
+        print(",", end=" ")
+print("\n--------------------\n")
 
-layers = layerize(mat)
+layers = layerize(data_mat, attribute_mat)
 
-print((f"layer 0 shape: {layers[0].twtt.shape}"))
-print(f"layer 0 first ten: {layers[0].twtt[0:10]}")
-print(f"layer 0 last ten: {layers[0].twtt[54600:54610]}\n")
+print("--------------------", end="")
+for layer in layers:
+    print(f"\n{layer.layer_name} number of points: {layer.twtt.shape[0]}")
+    print(f"{layer.layer_name} twtt first three: {layer.twtt[:3].tolist()} ")
+    print(f"{layer.layer_name} twtt last three: {layer.twtt[-3:].tolist()} ")
+print("--------------------\n")
 
-print((f"layer 1 shape: {layers[1].twtt.shape}"))
-print(f"layer 1 first ten: {layers[1].twtt[0:10]}")
-print(f"layer 1 last ten: {layers[1].twtt[54600:54610]}]\n")
+if save:
+    # save layers to a pickle file
+    # print("Saving layers to a pickle file...")
+    print("--------------------")
+    # list current directory
+    # print(f"Current directory: {}")
+    pickle.dump(layers, open("layers.pickle", "wb"))
+    print("layers.pickle saved in local directory of this python file.")
+    print("--------------------\n")
 
-print((f"layer 2 shape: {layers[2].twtt.shape}"))
-print(f"layer 2 first ten: {layers[2].twtt[0:10]}")
-print(f"layer 2 last ten: {layers[2].twtt[54600:54610]}\n")
+# plot the layers
+print("Plotting layers...")
+print("--------------------")
+# use matplotlib to plot the layer depths vs gps time for each layer on the same plot
 
+for layer in layers:
+    plt.plot(layer.gps_time, layer.twtt, label=layer.layer_name)
+
+plt.xlabel("GPS Time")
+plt.ylabel("Two Way Travel Time (ns)")
+plt.title("Elevation vs GPS Time")
+plt.legend()
+
+plt.show()
+print("--------------------\n")
+
+# TODO: make this selectable per season and date with the directory base and
+    # CSARP_layer file as hard-coded defaults
+# TODO: add a pygame gui with recent files and a file browser
+    # save the recent files to a file and load them on startup

@@ -1,0 +1,6 @@
+
+Cpython:S5806"+Rename this variable; it shadows a builtin.(‹ÖÃÚ
+Bpython:S5806%"+Rename this variable; it shadows a builtin.(Íä†
+Qpython:S1135-"4Complete the task associated to this "TODO" comment.(¿®¶Öÿÿÿÿÿ
+6python:S125D"Remove this commented out code.(èĞ¡è
+bpython:S3457L"EAdd replacement fields or use a normal string instead of an f-string.(Î´£ùÿÿÿÿ
