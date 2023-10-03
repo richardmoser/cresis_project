@@ -6,14 +6,12 @@ import scipy.io as sio
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-import mpl_toolkits
-# from mpl_toolkits.basemap import Basemap
-# import Basemap
-# from mpl_toolkits.basemap import Basemap, cm, shiftgrid
 from mpl_toolkits.basemap import Basemap
 from layer_class import Layer
 
+
+testing_mode = True # for use on a non OPR enabled machine without it's own files
+# testing_mode = False
 # readout = True
 readout = False
 save = True
@@ -84,7 +82,10 @@ def layerize(data_mat, attribute_mat):
 print("Reading data files...")
 print("--------------------")
 # set the directory, segment data file, layer attributes file, and start and end frames
-dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181030_01\\')
+if testing_mode:
+    dir = ('test_data\\')
+else:
+    dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181030_01\\')
 segment_data_file = 'Data_20181030_01_'
 # contains all of the actual data such as twtt, lat, lon, etc.
 layer_attributes_file = 'layer_20181030_01.mat'
@@ -158,16 +159,23 @@ if plot:
 # TODO: organize all of this into a library or something similar
 
 if plot_map:
-    # plot the lat-lon map for one of the layers
+    # plot the lat-lon map for one of the layers in antarctica
     print("Plotting lat-lon map...")
     print("--------------------")
     # plot the latitudes and longitudes for layers[0] on a basemap
     plt.figure()
-    m = Basemap(projection='npstere',boundinglat=-50,lon_0=180,resolution='l')
+    m = Basemap(projection='spstere', boundinglat=-70, lon_0=180, resolution='l')
     m.drawcoastlines()
-    m.drawparallels(np.arange(-80.,81.,20.))
-    m.drawmeridians(np.arange(-180.,181.,20.))
-    m.drawmapboundary(fill_color='white')
-    m.scatter(layers[0].lon, layers[0].lat, latlon=True)
+    m.fillcontinents(color='grey', lake_color='aqua')
+    m.drawparallels(np.arange(-80., 81., 20.))
+    m.drawmeridians(np.arange(-180., 181., 20.))
+    m.drawmapboundary(fill_color='aqua')
+    # plot the flight path
+    m.plot(layers[0].lon, layers[0].lat, latlon=True, color='lightgreen', linewidth=1)
+    # plot the South Pole
+    m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
+    x, y = m(0, -90)
+    plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
     plt.title("Lat-Lon Map")
     plt.show()
+    print("--------------------\n")

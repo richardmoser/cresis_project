@@ -16,3 +16,25 @@ class Layer:
         self.quality = quality
         self.twtt = twtt
         self.type = type
+
+
+class Twtt_Posit:
+    """
+    A class to store the data of a crossover point.
+    """
+
+    def __init__(self, layer, season, flight, indices):
+        self.layer = layer
+        self.layer_name = layer.layer_name
+        self.twtt = []
+        for index in indices:
+            twtt1 = layer.twtt[index[0]]
+            twtt2 = layer.twtt[index[1]]
+            self.twtt.append([twtt1, twtt2])
+        self.lat1 = layer.lat[indices[0][0]]
+        self.lat2 = layer.lat[indices[0][1]]
+        self.lon1 = layer.lon[indices[0][0]]
+        self.lon2 = layer.lon[indices[0][1]]
+        self.season = season
+        self.flight = flight
+        self.indices = indices
