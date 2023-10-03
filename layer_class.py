@@ -11,7 +11,7 @@ class Layer:
         self.gps_time = gps_time
         self.id = id
         self.lat = lat
-        self.long = lon
+        self.lon = lon
         self.param = param
         self.quality = quality
         self.twtt = twtt

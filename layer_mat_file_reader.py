@@ -6,10 +6,22 @@ import scipy.io as sio
 import numpy as np
 import pickle
 import matplotlib.pyplot as plt
-
+import matplotlib as mpl
+import mpl_toolkits
+# from mpl_toolkits.basemap import Basemap
+# import Basemap
+# from mpl_toolkits.basemap import Basemap, cm, shiftgrid
+from mpl_toolkits.basemap import Basemap
 from layer_class import Layer
 
-save = False
+# readout = True
+readout = False
+save = True
+# save = False
+# plot = True
+plot = False
+plot_map = True
+# plot_map = False
 
 def layerize(data_mat, attribute_mat):
     """
@@ -106,12 +118,13 @@ print("\n--------------------\n")
 
 layers = layerize(data_mat, attribute_mat)
 
-print("--------------------", end="")
-for layer in layers:
-    print(f"\n{layer.layer_name} number of points: {layer.twtt.shape[0]}")
-    print(f"{layer.layer_name} twtt first three: {layer.twtt[:3].tolist()} ")
-    print(f"{layer.layer_name} twtt last three: {layer.twtt[-3:].tolist()} ")
-print("--------------------\n")
+if readout:
+    print("--------------------", end="")
+    for layer in layers:
+        print(f"\n{layer.layer_name} number of points: {layer.twtt.shape[0]}")
+        print(f"{layer.layer_name} twtt first three: {layer.twtt[:3].tolist()} ")
+        print(f"{layer.layer_name} twtt last three: {layer.twtt[-3:].tolist()} ")
+    print("--------------------\n")
 
 if save:
     # save layers to a pickle file
@@ -123,23 +136,38 @@ if save:
     print("layers.pickle saved in local directory of this python file.")
     print("--------------------\n")
 
-# plot the layers
-print("Plotting layers...")
-print("--------------------")
-# use matplotlib to plot the layer depths vs gps time for each layer on the same plot
+if plot:
+    # plot the layers
+    print("Plotting layers...")
+    print("--------------------")
+# plot the layer depths vs gps time for each layer on the same plot
+    for layer in layers:
+        plt.plot(layer.gps_time, layer.twtt, label=layer.layer_name)
+    plt.xlabel("GPS Time")
+    plt.ylabel("Two Way Travel Time (ns)")
+    plt.title("Elevation vs GPS Time")
+    plt.legend()
 
-for layer in layers:
-    plt.plot(layer.gps_time, layer.twtt, label=layer.layer_name)
-
-plt.xlabel("GPS Time")
-plt.ylabel("Two Way Travel Time (ns)")
-plt.title("Elevation vs GPS Time")
-plt.legend()
-
-plt.show()
-print("--------------------\n")
+    plt.show()
+    print("--------------------\n")
 
 # TODO: make this selectable per season and date with the directory base and
     # CSARP_layer file as hard-coded defaults
 # TODO: add a pygame gui with recent files and a file browser
     # save the recent files to a file and load them on startup
+# TODO: organize all of this into a library or something similar
+
+if plot_map:
+    # plot the lat-lon map for one of the layers
+    print("Plotting lat-lon map...")
+    print("--------------------")
+    # plot the latitudes and longitudes for layers[0] on a basemap
+    plt.figure()
+    m = Basemap(projection='npstere',boundinglat=-50,lon_0=180,resolution='l')
+    m.drawcoastlines()
+    m.drawparallels(np.arange(-80.,81.,20.))
+    m.drawmeridians(np.arange(-180.,181.,20.))
+    m.drawmapboundary(fill_color='white')
+    m.scatter(layers[0].lon, layers[0].lat, latlon=True)
+    plt.title("Lat-Lon Map")
+    plt.show()
