@@ -15,6 +15,7 @@ class Layer:
         self.param = param
         self.quality = quality
         self.twtt = twtt
+        self.twtt_corrected = None
         self.type = type
 
 
@@ -35,6 +36,8 @@ class Twtt_Posit:
         self.lat2 = layer.lat[indices[0][1]]
         self.lon1 = layer.lon[indices[0][0]]
         self.lon2 = layer.lon[indices[0][1]]
+        self.gps_time1 = layer.gps_time[indices[0][0]]
+        self.gps_time2 = layer.gps_time[indices[0][1]]
         self.season = season
         self.flight = flight
         self.indices = indices

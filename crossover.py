@@ -7,7 +7,7 @@ from mpl_toolkits.basemap import Basemap
 from shapely.geometry import LineString
 
 plot_map = False
-# plot_map = True
+plot_map = True
 seg_length = 100
 save_posit = False
 # save_posit = True
@@ -44,6 +44,7 @@ def find_segment_intersection(segment1, segment2):
 def cross_point(layer, quiet=False):
     """
     :param layer: a Layer object
+    :param quiet: a boolean to suppress print statements
     :return: the point where the lat-lon crosses over its own path.
     purpose: ayers[0].lat and layers[0].lon are numpy arrays of the latitudes and
     longitudes for a flight path. It does not connect back to the beginning.
@@ -56,14 +57,16 @@ def cross_point(layer, quiet=False):
     print("--------------------")
     # create a list of line segments of length seg_length
     path_segments = []
-    if verbose: print(f"Dividing the path into segments of length {seg_length}...")
+    if verbose:
+        print(f"Dividing the path into segments of length {seg_length}...")
     for i in range(0, len(layer.lat), seg_length):
         if i + seg_length < len(layer.lat):
             path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + seg_length], layer.lon[i + seg_length])])
         else:
             path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[-1], layer.lon[-1])])
 
-    if verbose: print(f"Number of segments: {len(path_segments)}")
+    if verbose:
+        print(f"Number of segments: {len(path_segments)}")
     print("Checking for intersections...")
     # check for intersections between the line segments
     # TODO: implement loading bar
@@ -74,15 +77,14 @@ def cross_point(layer, quiet=False):
             if segments_intersect(path_segments[i], path_segments[j]):
                 intersection_points = find_segment_intersection(path_segments[i], path_segments[j])
                 if intersection_points:
-                    # intersections.append([intersection_points])
-                    # intersections.append([intersection_points[0][0], intersection_points[1][0]])
                     rough_intersections.append([intersection_points[0][0], intersection_points[1][0]])
                     intersecting_segments.append([i, j])
-                    # print(f"Segments {i} and {j} intersect near point: {intersection_points}")
-                    if verbose: print(f"Segments {i} and {j} intersect near "
-                          f"({intersection_points[0][0]}, {intersection_points[1][0]})")
+                    if verbose:
+                        print(f"Segments {i} and {j} intersect near "
+                              f"({intersection_points[0][0]}, {intersection_points[1][0]})")
 
-    if verbose: print("\nChecking for a more precise intersection...")
+    if verbose:
+        print("\nChecking for a more precise intersection...")
     fine_intersections = []
     intersection_indices = []
 
@@ -103,8 +105,10 @@ def cross_point(layer, quiet=False):
         else:
             seg2_start = seg2 * seg_length
             seg2_end = seg2_start + seg_length
-        if verbose: print(f"segment {seg1} start: {seg1_start}, segment 1 end: {seg1_end}")
-        if verbose: print(f"segment {seg2} start: {seg2_start}, segment 2 end: {seg2_end}")
+        if verbose:
+            print(f"segment {seg1} start: {seg1_start}, segment 1 end: {seg1_end}")
+        if verbose:
+            print(f"segment {seg2} start: {seg2_start}, segment 2 end: {seg2_end}")
 
         # create a list of line segments of length 1
         path_segments = []
@@ -113,7 +117,6 @@ def cross_point(layer, quiet=False):
         for i in range(seg2_start, seg2_end):
             path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1])])
 
-
         # check for intersections between the line segments
         for i in range(len(path_segments)):
             for j in range(i + 1, len(path_segments)):
@@ -121,19 +124,17 @@ def cross_point(layer, quiet=False):
                     intersection_points = find_segment_intersection(path_segments[i], path_segments[j])
                     if intersection_points:
                         # intersections.append([intersection_points])
-                        # intersections.append([intersection_points[0][0], intersection_points[1][0]])
                         fine_intersections.append([intersection_points[0][0], intersection_points[1][0]])
-                        # print(f"Segments {i} and {j} intersect near point: {intersection_points}")
-                        # print the indices of the intersecting segments in the original lat-lon arrays
                         index1 = seg1_start + i
                         index2 = seg2_start + j
-                        print(f"Segments {seg1} and {seg2 } intersect near indices "
+                        print(f"Segments {seg1} and {seg2} intersect near indices "
                               f"{index1} and {index2}\nThis corresponds roughly to the "
                               f"lat-lon: ({fine_intersections[-1][0]}, {fine_intersections[-1][1]})")
                         intersection_indices.append([index1, index2])
     print(f"Number of intersections: {len(fine_intersections)}")
-    if verbose: print(f"Number of rough intersections: {len(rough_intersections)}")
-    if verbose: print(f"Number of intersection indices: {len(intersection_indices)}")
+    if verbose:
+        print(f"Number of rough intersections: {len(rough_intersections)}")
+        print(f"Number of intersection indices: {len(intersection_indices)}")
     # print(f"Intersection at index {intersection_indices[0][0]} and {intersection_indices[0][1]}")
 
     print("--------------------\n")
@@ -141,9 +142,10 @@ def cross_point(layer, quiet=False):
     return fine_intersections, intersection_indices
 
 
-def twtt_at_point(read_layer, surface_layer, indices):
+def twtt_at_point(read_layer, surface_layer, indices, corrected=True):
     """
-    :param read_layer: a Layer object
+    :param read_layer: the layer that is being compared to the surface layer
+    :param surface_layer: the surface layer of the ice sheet
     :param indices: a list of indices in the lat-lon arrays where the flight path
     crosses over itself
     :return: the twtt at the crossover point
@@ -151,75 +153,152 @@ def twtt_at_point(read_layer, surface_layer, indices):
     print("Finding twtt at crossover point...")
     print("--------------------")
     print(f"Number of crossover points: {len(indices)}"
-            f"\nFirst crossover point is at indices {indices[0][0]} and {indices[0][1]}")
+          f"\nFirst crossover point is at indices {indices[0][0]} and {indices[0][1]}")
     twtt = []
     for index in indices:
-        twtt1 = read_layer.twtt[index[0]]
-        twtt2 = read_layer.twtt[index[1]]
-        print(f"twtt at index {index[0]}: {twtt1}")
-        print(f"twtt at index {index[1]}: {twtt2}")
-        twtt.append([twtt1, twtt2])
+        if corrected:
+            adjusted_twtt1 = read_layer.twtt[index[0]] - surface_layer.twtt[index[0]]
+            adjusted_twtt2 = read_layer.twtt[index[1]] - surface_layer.twtt[index[1]]
+            print(f"twtt at index {index[0]}: {read_layer.twtt[index[0]]}")
+            print(f"twtt at index {index[1]}: {read_layer.twtt[index[1]]}")
+            print(f"twtt at index {index[0]} after surface adjustment: {adjusted_twtt1}")
+            print(f"twtt at index {index[1]} after surface adjustment: {adjusted_twtt2}")
+            print(f"twtt difference: {abs(adjusted_twtt1 - adjusted_twtt2)}")
+            twtt.append([adjusted_twtt1, adjusted_twtt2])
+        else:
+            twtt.append([read_layer.twtt[index[0]], read_layer.twtt[index[1]]])
     print("--------------------\n")
     return twtt
 
 
-print("Reading pickle file...")
-print("--------------------")
-# read layers.pickle into a list of Layer objects
-with open('layers.pickle', 'rb') as f:
-    layers = pickle.load(f)
-for layer in layers:
-    print(layer.layer_name)
-print("--------------------\n")
-
-intersection_points, intersection_indices = cross_point(layers[0], quiet=True)
-
-# print("debug:")
-# print(f"first intersection point: {intersection_points[0]}")
-
-if plot_map:
-    # bound_lat = -70
-    bound_lat = -87
-    # plot the lat-lon map for one of the layers in antarctica
-    print("Plotting lat-lon map...")
+def main():
+    print("Reading pickle file...")
     print("--------------------")
-    # plot the latitudes and longitudes for layers[0] on a basemap
-    plt.figure(figsize=(12, 12), layout='tight')
-    m = Basemap(projection='spstere', boundinglat=bound_lat, lon_0=180, resolution='l')
-    m.drawcoastlines()
-    m.fillcontinents(color='grey', lake_color='aqua')
-    m.drawparallels(np.arange(-80., 81., 20.))
-    m.drawmeridians(np.arange(-180., 181., 20.))
-    m.drawmapboundary(fill_color='aqua')
-    # plot the flight path
-    m.plot(layers[0].lon, layers[0].lat, latlon=True, color='lightgreen', linewidth=1)
-    # m.plot(layers[0].lon[0:steps], layers[0].lat[0:steps], latlon=True, color='black', linewidth=1)
-    # plot the South Pole
-    m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
-    # plot the crossover points
-    for point in intersection_points:
-        m.scatter(point[1], point[0], latlon=True, color='red', linewidth=1, label='Crossover Point')
-    # plot the crossover line
-
-
-    x, y = m(0, -90)
-    plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
-    plt.title("Lat-Lon Map")
-    plt.show()
+    # read layers.pickle into a list of Layer objects
+    with open('layers.pickle', 'rb') as f:
+        layers = pickle.load(f)
+    for layer in layers:
+        print(layer.layer_name)
     print("--------------------\n")
 
-twtt_at_intersect = twtt_at_point(layers[1], layer[0], intersection_indices)
-twtt_difference_at_intersect = twtt_at_intersect[0][0] - twtt_at_intersect[0][1]
-print(f"twtt difference at crossover point: {twtt_difference_at_intersect} ns")
+    intersection_points, intersection_indices = cross_point(layers[0], quiet=True)
+    # print(f"times of passing intersection point: {layers[0].gps_time[intersection_indices[0][0]]}"
+    #         f"and {layers[0].gps_time[intersection_indices[0][1]]}")
 
-posit = Twtt_Posit(layers[1], "2018_Antarctica_DC8", "20181030_01", intersection_indices)
-print(f"posit.layer_name: {posit.layer_name}")
+    twtt_at_intersect = twtt_at_point(layers[1], layers[0], intersection_indices)
+    twtt_difference_at_intersect = twtt_at_intersect[0][0] - twtt_at_intersect[0][1]
+    print(f"twtt difference at crossover point: {twtt_difference_at_intersect} ns")
 
-if save_posit:
-    # save posit to a pickle file
-    print("--------------------")
-    pickle.dump(posit, open("posit.pickle", "wb"))
-    print("posit.pickle saved in local directory of this python file.")
-    print("--------------------\n")
+    posit = Twtt_Posit(layers[1], "2018_Antarctica_DC8", "20181030_01", intersection_indices)
+    print(f"posit.layer_name: {posit.layer_name}")
 
-# if plot_layers_at_cross:
+    if save_posit:
+        # save posit to a pickle file
+        print("--------------------")
+        pickle.dump(posit, open("posit.pickle", "wb"))
+        print("posit.pickle saved in local directory of this python file.")
+        print("--------------------\n")
+
+    if plot_layers_at_cross:
+
+        plt.figure(figsize=(24, 12), layout='tight')
+        """
+        plot the layers
+        """
+        print("Adjusting for surface twtt...")
+        for layer in layers:
+            corrected_layer = layer.twtt - layers[0].twtt
+            layer.twtt_corrected = corrected_layer
+
+        # ax2 will be the layer plot
+        plt.subplot(1, 2, 1)
+
+        print("Plotting layers...")
+        print("--------------------")
+        # plot the layer depths vs index for 500 points before and after the first
+        # crossover point for each layer.
+        # also plot the layer depths vs index for 500 points before and after the
+        # second crossover point for each layer.
+        offset = 500
+        plt.plot(layers[0].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+                 label=layers[0].layer_name)
+        plt.plot(layers[1].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+                 label=layers[1].layer_name + ' segment 1')
+        plt.plot(layers[1].twtt_corrected[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
+                 label=layers[1].layer_name + ' segment 2')
+        # invert the y-axis because the twtt increases with depth
+        plt.gca().invert_yaxis()
+        # plot the crossover point on the plot
+        plt.scatter(offset, twtt_at_point(layers[1], layers[0],
+                    intersection_indices)[0][0], color='red',
+                    label='X Point 1')
+        plt.scatter(offset, twtt_at_point(layers[1], layers[0],
+                    intersection_indices)[0][1], color='green',
+                    label='X Point 2')
+        # plot a line at the crossover point
+        plt.axvline(x=offset, color='black', label='X Point', linestyle='--', linewidth=0.3)
+        plt.xlabel("Index")
+        plt.ylabel("Adjusted Two Way Travel Time (s)")
+        plt.title("Adjusted Two Way Travel Time vs Index")
+        plt.legend()
+
+        """
+        plot the map
+        """
+        plt.subplot(1, 2, 2)
+
+        # TODO: make the right pane a zoomed in map centered around the X point
+        #  with a small zoomed out map in the corner
+        # TODO: adjust time scale to be in nanoseconds instead of seconds
+
+        # bound_lat = -65
+        bound_lat = -87
+        # plot the lat-lon map for one of the layers in antarctica
+        print("Plotting lat-lon map...")
+        print("--------------------")
+        m = Basemap(projection='spstere', boundinglat=bound_lat, lon_0=180, resolution='l')
+        m.drawcoastlines()
+        m.fillcontinents(color='grey', lake_color='aqua')
+        m.drawparallels(np.arange(-80., 81., 20.))
+        m.drawmeridians(np.arange(-180., 181., 20.))
+        m.drawmapboundary(fill_color='aqua')
+        # plot the flight path
+        m.plot(layers[0].lon, layers[0].lat, latlon=True, color='lightgreen', linewidth=1)
+        # plot the section of the flight path in the plot above
+        m.plot(layers[0].lon[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+               layers[0].lat[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset], latlon=True,
+               color='red', linewidth=1)
+        m.plot(layers[0].lon[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
+               layers[0].lat[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset], latlon=True,
+               color='green', linewidth=1)
+        # plot labels for the flight paths at their start points
+        plt.text(
+            m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[
+                0],
+            m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[
+                1], '\nsegment 1', fontsize='smaller', fontweight='bold', ha='right', va='top', color='red')
+        plt.text(
+            m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[
+                0],
+            m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[
+                1], '\nsegment 2', fontsize='smaller', fontweight='bold', ha='left', va='top', color='green')
+        # plot the South Pole
+        m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
+        # plot the crossover points
+        for point in intersection_points:
+            m.scatter(point[1], point[0], latlon=True, color='darkred', linewidth=1, label='Crossover Point')
+            plt.text(m(point[1], point[0])[0], m(point[1], point[0])[1] - 10000, 'Crossover Point\n\n',
+                     fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
+        # plot the crossover line
+
+        x, y = m(0, -90)
+        plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
+        plt.title("Lat-Lon Map")
+        # plt.show()
+        print("--------------------\n")
+
+        plt.show()
+
+
+if __name__ == "__main__":
+    main()

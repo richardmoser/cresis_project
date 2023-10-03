@@ -17,7 +17,7 @@ readout = False
 save = True
 # save = False
 # plot = True
-plot = False
+plot_layer = False
 plot_map = True
 # plot_map = False
 
@@ -121,12 +121,12 @@ layers = layerize(data_mat, attribute_mat)
 
 if readout:
     print("--------------------", end="")
-    for layer in layers:
+    for layer in layers:`
         print(f"\n{layer.layer_name} number of points: {layer.twtt.shape[0]}")
         print(f"{layer.layer_name} twtt first three: {layer.twtt[:3].tolist()} ")
         print(f"{layer.layer_name} twtt last three: {layer.twtt[-3:].tolist()} ")
     print("--------------------\n")
-
+`
 if save:
     # save layers to a pickle file
     # print("Saving layers to a pickle file...")
@@ -137,7 +137,7 @@ if save:
     print("layers.pickle saved in local directory of this python file.")
     print("--------------------\n")
 
-if plot:
+if plot_layer:
     # plot the layers
     print("Plotting layers...")
     print("--------------------")
