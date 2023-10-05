@@ -78,104 +78,119 @@ def layerize(data_mat, attribute_mat):
     return layers
 
 
-
-print("Reading data files...")
-print("--------------------")
-# set the directory, segment data file, layer attributes file, and start and end frames
-if testing_mode:
-    dir = ('test_data\\')
-else:
-    dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181030_01\\')
-segment_data_file = 'Data_20181030_01_'
-# contains all of the actual data such as twtt, lat, lon, etc.
-layer_attributes_file = 'layer_20181030_01.mat'
-# contains the attributes of the layer such as name, param, etc.
-startframe = '001'
-endframe = '016'
-
-# load an array of mat files
-data_mat = np.array([sio.loadmat(dir + segment_data_file + str(i).zfill(3) + '.mat')
-                     for i in range(int(startframe), int(endframe)+1)])
-attribute_mat = sio.loadmat(dir + layer_attributes_file)
-
-# print the keys as strings without all the extra stuff
-keys = [str(key).strip("_") for key in data_mat[0].keys()]
-print(f"DATA MAT FILE KEYS:")
-for key in keys:
-    print(key, end="")
-    # if not last key, print a comma
-    if key != keys[-1]:
-        print(",", end=" ")
-# print("\n")
-# print the keys in the layer attributes mat file
-print(f"\nLAYER ATTRIBUTES MAT FILE KEYS:")
-keys = [str(key).strip("_") for key in attribute_mat.keys()]
-for key in keys:
-    print(key, end="")
-    # if not last key, print a comma
-    if key != keys[-1]:
-        print(",", end=" ")
-print("\n--------------------\n")
-
-layers = layerize(data_mat, attribute_mat)
-
-if readout:
-    print("--------------------", end="")
-    for layer in layers:`
-        print(f"\n{layer.layer_name} number of points: {layer.twtt.shape[0]}")
-        print(f"{layer.layer_name} twtt first three: {layer.twtt[:3].tolist()} ")
-        print(f"{layer.layer_name} twtt last three: {layer.twtt[-3:].tolist()} ")
-    print("--------------------\n")
-`
-if save:
-    # save layers to a pickle file
-    # print("Saving layers to a pickle file...")
+def main():
+    print("Reading data files...")
     print("--------------------")
-    # list current directory
-    # print(f"Current directory: {}")
-    pickle.dump(layers, open("layers.pickle", "wb"))
-    print("layers.pickle saved in local directory of this python file.")
-    print("--------------------\n")
+    # set the directory, segment data file, layer attributes file, and start and end frames
+    if testing_mode:
+        dir = ('test_data\\')
+        segment_data_file = 'Data_20181030_01_'
+        # contains all of the actual data such as twtt, lat, lon, etc.
+        layer_attributes_file = 'layer_20181030_01.mat'
+        # contains the attributes of the layer such as name, param, etc.
+    else:
+        dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181030_01\\')
+        # segment_data_file = 'Data_20181030_01_'
+        segment_data_file = 'Data_20181030_01_'
+        # contains all of the actual data such as twtt, lat, lon, etc.
+        layer_attributes_file = 'Data_20181112_02_.mat'
+        # contains the attributes of the layer such as name, param, etc.
 
-if plot_layer:
-    # plot the layers
-    print("Plotting layers...")
-    print("--------------------")
-# plot the layer depths vs gps time for each layer on the same plot
-    for layer in layers:
-        plt.plot(layer.gps_time, layer.twtt, label=layer.layer_name)
-    plt.xlabel("GPS Time")
-    plt.ylabel("Two Way Travel Time (ns)")
-    plt.title("Elevation vs GPS Time")
-    plt.legend()
+        # dir = C:\Users\rj\Documents\cresis\rds\2018_Antarctica_DC8\CSARP_layer\20181112_02
+        # dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181112_02\\')
+        # segment_data_file = 'Data_20181112_02_'
+        # layer_attributes_file = 'layer_20181112_02.mat'
 
-    plt.show()
-    print("--------------------\n")
+    startframe = '001'
+    endframe = '015'
 
-# TODO: make this selectable per season and date with the directory base and
-    # CSARP_layer file as hard-coded defaults
-# TODO: add a pygame gui with recent files and a file browser
-    # save the recent files to a file and load them on startup
-# TODO: organize all of this into a library or something similar
+    # load an array of mat files
+    data_mat = np.array([sio.loadmat(dir + segment_data_file + str(i).zfill(3) + '.mat')
+                         for i in range(int(startframe), int(endframe)+1)])
+    attribute_mat = sio.loadmat(dir + layer_attributes_file)
 
-if plot_map:
-    # plot the lat-lon map for one of the layers in antarctica
-    print("Plotting lat-lon map...")
-    print("--------------------")
-    # plot the latitudes and longitudes for layers[0] on a basemap
-    plt.figure()
-    m = Basemap(projection='spstere', boundinglat=-70, lon_0=180, resolution='l')
-    m.drawcoastlines()
-    m.fillcontinents(color='grey', lake_color='aqua')
-    m.drawparallels(np.arange(-80., 81., 20.))
-    m.drawmeridians(np.arange(-180., 181., 20.))
-    m.drawmapboundary(fill_color='aqua')
-    # plot the flight path
-    m.plot(layers[0].lon, layers[0].lat, latlon=True, color='lightgreen', linewidth=1)
-    # plot the South Pole
-    m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
-    x, y = m(0, -90)
-    plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
-    plt.title("Lat-Lon Map")
-    plt.show()
-    print("--------------------\n")
+    # print the keys as strings without all the extra stuff
+    keys = [str(key).strip("_") for key in data_mat[0].keys()]
+    print(f"DATA MAT FILE KEYS:")
+    for key in keys:
+        print(key, end="")
+        # if not last key, print a comma
+        if key != keys[-1]:
+            print(",", end=" ")
+    # print("\n")
+    # print the keys in the layer attributes mat file
+    print(f"\nLAYER ATTRIBUTES MAT FILE KEYS:")
+    keys = [str(key).strip("_") for key in attribute_mat.keys()]
+    for key in keys:
+        print(key, end="")
+        # if not last key, print a comma
+        if key != keys[-1]:
+            print(",", end=" ")
+    print("\n--------------------\n")
+
+    layers = layerize(data_mat, attribute_mat)
+
+    if readout:
+        print("--------------------", end="")
+        for layer in layers:
+            print(f"\n{layer.layer_name} number of points: {layer.twtt.shape[0]}")
+            print(f"{layer.layer_name} twtt first three: {layer.twtt[:3].tolist()} ")
+            print(f"{layer.layer_name} twtt last three: {layer.twtt[-3:].tolist()} ")
+        print("--------------------\n")
+
+    if save:
+        # save layers to a pickle file
+        # print("Saving layers to a pickle file...")
+        print("--------------------")
+        # list current directory
+        # print(f"Current directory: {}")
+        file_name = "layer_export" + layer_attributes_file[5:-4] + ".pickle"
+        pickle.dump(layers, open(file_name, "wb"))
+        print(file_name, " saved in local directory of this python file.")
+        print("--------------------\n")
+
+    if plot_layer:
+        # plot the layers
+        print("Plotting layers...")
+        print("--------------------")
+    # plot the layer depths vs gps time for each layer on the same plot
+        for layer in layers:
+            plt.plot(layer.gps_time, layer.twtt, label=layer.layer_name)
+        plt.xlabel("GPS Time")
+        plt.ylabel("Two Way Travel Time (ns)")
+        plt.title("Elevation vs GPS Time")
+        plt.legend()
+
+        plt.show()
+        print("--------------------\n")
+
+    # TODO: make this selectable per season and date with the directory base and
+        # CSARP_layer file as hard-coded defaults
+    # TODO: add a pygame gui with recent files and a file browser
+        # save the recent files to a file and load them on startup
+    # TODO: organize all of this into a library or something similar
+
+    if plot_map:
+        # plot the lat-lon map for one of the layers in antarctica
+        print("Plotting lat-lon map...")
+        print("--------------------")
+        # plot the latitudes and longitudes for layers[0] on a basemap
+        plt.figure()
+        m = Basemap(projection='spstere', boundinglat=-70, lon_0=180, resolution='l')
+        m.drawcoastlines()
+        m.fillcontinents(color='grey', lake_color='aqua')
+        m.drawparallels(np.arange(-80., 81., 20.))
+        m.drawmeridians(np.arange(-180., 181., 20.))
+        m.drawmapboundary(fill_color='aqua')
+        # plot the flight path
+        m.plot(layers[0].lon, layers[0].lat, latlon=True, color='lightgreen', linewidth=1)
+        # plot the South Pole
+        m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
+        x, y = m(0, -90)
+        plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
+        plt.title("Lat-Lon Map")
+        plt.show()
+        print("--------------------\n")
+
+if __name__ == "__main__":
+    main()
