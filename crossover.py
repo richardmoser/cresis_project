@@ -8,7 +8,7 @@ from shapely.geometry import LineString
 from library import *
 
 plot_map = False
-plot_map = True
+# plot_map = True
 seg_length = 100
 flight = "20181030_01"
 file_name = "layer_export_" + flight + ".pickle"
@@ -26,6 +26,14 @@ def main():
     # find the difference in twtt at the crossover points
     print(f"twtt difference at crossover point: {twtt_difference_at_intersect} ns")
 
+    refractive_index = 1.77
+    depth_1 = twtt_to_depth(twtt_at_intersect[0][0], refractive_index)
+    depth_2 = twtt_to_depth(twtt_at_intersect[0][1], refractive_index)
+
+    print(f"depth at crossover point on segment 1: {depth_1} m")
+    print(f"depth at crossover point on segment 2: {depth_2} m")
+    print(f"crossover point lat-long: {intersection_points[0]}")
+
     posit = Twtt_Posit(layers[1], "2018_Antarctica_DC8", "20181030_01", intersection_indices)
     # create a Twtt_Posit object to store the crossover point data
     print(f"posit.layer_name: {posit.layer_name}")
@@ -33,8 +41,8 @@ def main():
     print("saving posit...")
     save_posit(posit)
 
-    plot_layers_at_cross(layers, intersection_indices, intersection_points)
-
+    if plot_map:
+        plot_layers_at_cross(layers, intersection_indices, intersection_points,zoom=False)
 
 
 if __name__ == "__main__":

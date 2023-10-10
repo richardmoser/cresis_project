@@ -22,6 +22,15 @@ def read_layers(flight, file_name):
     return layers
 
 
+def twtt_to_depth(twtt, refractive_index):
+    # n = c / v
+    # v = c / n
+    n = refractive_index
+    c = 299792458  # m/s
+    v = c / n
+    depth = twtt * v / 2
+    return depth
+
 def save_posit(posit):
     print("debug posit")
     # save posit to a pickle file
@@ -151,6 +160,9 @@ def cross_point(layer, seg_length, quiet=False):
     if verbose:
         print(f"Number of rough intersections: {len(rough_intersections)}")
         print(f"Number of intersection indices: {len(intersection_indices)}")
+        print(f"Indices: {intersection_indices}")
+        for index in intersection_indices:
+            print(f"Index: {index}")
     # print(f"Intersection at index {intersection_indices[0][0]} and {intersection_indices[0][1]}")
 
     print("--------------------\n")
@@ -173,6 +185,7 @@ def twtt_at_point(read_layer, surface_layer, indices, corrected=True):
     twtt = []
     for index in indices:
         if corrected:
+            # print(f"Debug: \n\tIndex: {index}")
             adjusted_twtt1 = read_layer.twtt[index[0]] - surface_layer.twtt[index[0]]
             adjusted_twtt2 = read_layer.twtt[index[1]] - surface_layer.twtt[index[1]]
             print(f"twtt at index {index[0]}: {read_layer.twtt[index[0]]}")
@@ -187,7 +200,7 @@ def twtt_at_point(read_layer, surface_layer, indices, corrected=True):
     return twtt
 
 
-def plot_layers_at_cross(layers, intersection_indices, intersection_points):
+def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False):
     plt.figure(figsize=(24, 12), layout='tight')
     """
     plot the layers
@@ -237,8 +250,8 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points):
     # TODO: make the right pane a zoomed in map centered around the X point
     #  with a small zoomed out map in the corner
     # TODO: adjust time scale to be in nanoseconds instead of seconds
-    zoom_out_to_continent = False
-    # zoom_out_to_continent = True
+    # zoom_out_to_continent = False
+    zoom_out_to_continent = True
 
     if zoom_out_to_continent:
         bound_lat = -65
