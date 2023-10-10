@@ -14,7 +14,9 @@ plot_map = True
 zoom = False
 # zoom = True
 seg_length = 100
-flight = "20181030_01"  # the flight date and frame number
+season = "2018_Antarctica_DC8"
+# flight = "20181030_01"  # the flight date and frame number
+flight = "20181103_01"
 file_name = "layer_export_" + flight + ".pickle"
 
 
@@ -24,7 +26,7 @@ def main():
     intersection_points, intersection_indices = cross_point(layers[0], seg_length, quiet=True)
     # find the crossover points
 
-    posit = Twtt_Posit(layers[1], "2018_Antarctica_DC8", "20181030_01", intersection_indices)
+    posit = Twtt_Posit(layers[1], season, flight, intersection_indices)
     # create a Twtt_Posit object to store the crossover point data
     # print(f"posit.layer_name: {posit.layer_name}")
 

@@ -1,15 +1,17 @@
 import scipy.io as sio
 import numpy as np
 from layer_class import Layer
+import mat73
 
 # layer_20181030_01.mat
 
 # load the mat file at C:\Users\rj\Documents\cresis\rds\2018_Antarctica_DC8\CSARP_layer\20181030_01\layer_20181030_01.mat
-dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181030_01\\')
+dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181103_01\\')
 
-file = 'layer_20181030_01.mat'
+file = 'layer_20181103_01.mat'
 
-mat = sio.loadmat(dir + file)
+# mat = sio.loadmat(dir + file)
+mat = mat73.loadmat(dir + file)
 
 # print the keys as strings without all the extra stuff
 keys = [str(key).strip("_") for key in mat.keys()]
