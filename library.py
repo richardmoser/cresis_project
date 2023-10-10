@@ -8,13 +8,18 @@ import numpy as np
 from shapely.geometry import LineString
 from mpl_toolkits.basemap import Basemap
 
-def read_layers(flight, file_name):
+def read_layers(file_name):
+    """
+    :param file_name: the name of the pickle file containing the layers, e.g. "layer_export_20181030_01.pickle"
+    :return: a list of Layer objects from the pickle file (usually Surface, your custom layer(s), and Bottom)
+    """
     print("Reading pickle file...")
     print("--------------------")
     # read layers.pickle into a list of Layer objects
-    # flight = "20181030_01"
-    # file_name = "layer_export_" + flight + ".pickle"
-    with open('layers.pickle', 'rb') as f:
+
+    # file_name = 'layers.pickle'
+
+    with open(file_name, 'rb') as f:
         layers = pickle.load(f)
     for layer in layers:
         print(layer.layer_name)
@@ -23,6 +28,11 @@ def read_layers(flight, file_name):
 
 
 def twtt_to_depth(twtt, refractive_index):
+    """
+    :param twtt: the two way travel time in seconds
+    :param refractive_index: the refractive index of the ice
+    :return: the depth in meters
+    """
     # n = c / v
     # v = c / n
     n = refractive_index
@@ -31,21 +41,36 @@ def twtt_to_depth(twtt, refractive_index):
     depth = twtt * v / 2
     return depth
 
+
 def save_posit(posit):
-    print("debug posit")
+    """
+    :param posit: a Twtt_Posit object
+    :return: nothing
+    """
     # save posit to a pickle file
+    print("Saving posit...")
     print("--------------------")
     pickle.dump(posit, open("posit.pickle", "wb"))
     print("posit.pickle saved in local directory of this python file.")
     print("--------------------\n")
 
 def segments_intersect(segment1, segment2):
+    """
+    :param segment1: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
+    :param segment2: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
+    :return: True if the segments intersect, False if they do not
+    """
     line1 = LineString(segment1)
     line2 = LineString(segment2)
     return line1.intersects(line2)
 
 
 def find_segment_intersection(segment1, segment2):
+    """
+    :param segment1: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
+    :param segment2: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
+    :return: the point where the segments intersect, or None if they do not intersect
+    """
     line1 = LineString(segment1)
     line2 = LineString(segment2)
     intersection = line1.intersection(line2)
@@ -71,7 +96,7 @@ def cross_point(layer, seg_length, quiet=False):
     :param layer: a Layer object
     :param quiet: a boolean to suppress print statements
     :return: the point where the lat-lon crosses over its own path.
-    purpose: ayers[0].lat and layers[0].lon are numpy arrays of the latitudes and
+    purpose: layers[0].lat and layers[0].lon are numpy arrays of the latitudes and
     longitudes for a flight path. It does not connect back to the beginning.
     This function finds the point where the path crosses over itself.
     The lat-lon of the crossover point will not be exactly the same as the
@@ -170,7 +195,7 @@ def cross_point(layer, seg_length, quiet=False):
     return fine_intersections, intersection_indices
 
 
-def twtt_at_point(read_layer, surface_layer, indices, corrected=True):
+def twtt_at_point(read_layer, surface_layer, indices, corrected=True, quiet=False):
     """
     :param read_layer: the layer that is being compared to the surface layer
     :param surface_layer: the surface layer of the ice sheet
@@ -178,33 +203,44 @@ def twtt_at_point(read_layer, surface_layer, indices, corrected=True):
     crosses over itself
     :return: the twtt at the crossover point
     """
-    print("Finding twtt at crossover point...")
-    print("--------------------")
-    print(f"Number of crossover points: {len(indices)}"
-          f"\nFirst crossover point is at indices {indices[0][0]} and {indices[0][1]}")
+    if not quiet:
+        print("Finding twtt at crossover point...")
+        print("--------------------")
+        print(f"Number of crossover points: {len(indices)}"
+              f"\nFirst crossover point is at indices {indices[0][0]} and {indices[0][1]}")
     twtt = []
     for index in indices:
         if corrected:
             # print(f"Debug: \n\tIndex: {index}")
             adjusted_twtt1 = read_layer.twtt[index[0]] - surface_layer.twtt[index[0]]
             adjusted_twtt2 = read_layer.twtt[index[1]] - surface_layer.twtt[index[1]]
-            print(f"twtt at index {index[0]}: {read_layer.twtt[index[0]]}")
-            print(f"twtt at index {index[1]}: {read_layer.twtt[index[1]]}")
-            print(f"twtt at index {index[0]} after surface adjustment: {adjusted_twtt1}")
-            print(f"twtt at index {index[1]} after surface adjustment: {adjusted_twtt2}")
-            print(f"twtt difference: {abs(adjusted_twtt1 - adjusted_twtt2)}")
+            if not quiet:
+                print(f"twtt at index {index[0]}: {read_layer.twtt[index[0]]}")
+                print(f"twtt at index {index[1]}: {read_layer.twtt[index[1]]}")
+                print(f"twtt at index {index[0]} after surface adjustment: {adjusted_twtt1}")
+                print(f"twtt at index {index[1]} after surface adjustment: {adjusted_twtt2}")
+                print(f"twtt difference: {abs(adjusted_twtt1 - adjusted_twtt2)}")
+                print(f"gps time at index {index[0]}: {read_layer.gps_time[index[0]]}")
+                print(f"gps time at index {index[1]}: {read_layer.gps_time[index[1]]}")
             twtt.append([adjusted_twtt1, adjusted_twtt2])
         else:
             twtt.append([read_layer.twtt[index[0]], read_layer.twtt[index[1]]])
-    print("--------------------\n")
+    if not quiet:
+        print("--------------------\n")
     return twtt
 
 
 def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False):
+    """
+    :param layers: a list of Layer objects
+    :param intersection_indices: a list of indices in the lat-lon arrays where the flight path
+    crosses over itself
+    :param intersection_points: a list of lat-lon points where the flight path crosses over itself
+    :return: nothing (plots the layers and the map)
+    """
     plt.figure(figsize=(24, 12), layout='tight')
-    """
-    plot the layers
-    """
+    print("Plotting layers and map...")
+    print("--------------------")
     print("Adjusting for surface twtt...")
     for layer in layers:
         corrected_layer = layer.twtt - layers[0].twtt
@@ -213,27 +249,36 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     # ax2 will be the layer plot
     plt.subplot(1, 2, 1)
 
-    print("Plotting layers...")
-    print("--------------------")
     # plot the layer depths vs index for 500 points before and after the first
     # crossover point for each layer.
     # also plot the layer depths vs index for 500 points before and after the
     # second crossover point for each layer.
     offset = 500
+    # plot the corrected twtt for each layer
     plt.plot(layers[0].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
              label=layers[0].layer_name)
     plt.plot(layers[1].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
              label=layers[1].layer_name + ' segment 1')
     plt.plot(layers[1].twtt_corrected[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
              label=layers[1].layer_name + ' segment 2')
+
+    # plot uncorrected twtt for each layer
+    # plt.plot(layers[0].twtt[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+    #             label=layers[0].layer_name)
+    # plt.plot(layers[1].twtt[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+    #             label=layers[1].layer_name + ' segment 1')
+    # plt.plot(layers[1].twtt[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
+                # label=layers[1].layer_name + ' segment 2')
+
+
     # invert the y-axis because the twtt increases with depth
     plt.gca().invert_yaxis()
     # plot the crossover point on the plot
     plt.scatter(offset, twtt_at_point(layers[1], layers[0],
-                                      intersection_indices)[0][0], color='red',
+                                      intersection_indices, quiet=True)[0][0], color='red',
                 label='X Point 1')
     plt.scatter(offset, twtt_at_point(layers[1], layers[0],
-                                      intersection_indices)[0][1], color='green',
+                                      intersection_indices, quiet=True)[0][1], color='green',
                 label='X Point 2')
     # plot a line at the crossover point
     plt.axvline(x=offset, color='black', label='X Point', linestyle='--', linewidth=0.3)
@@ -251,15 +296,15 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     #  with a small zoomed out map in the corner
     # TODO: adjust time scale to be in nanoseconds instead of seconds
     # zoom_out_to_continent = False
-    zoom_out_to_continent = True
+    zoom_out_to_continent = not zoom
 
     if zoom_out_to_continent:
         bound_lat = -65
     else:
         bound_lat = -87
     # plot the lat-lon map for one of the layers in antarctica
-    print("Plotting lat-lon map...")
-    print("--------------------")
+    # print("Plotting lat-lon map...")
+    # print("--------------------")
     m = Basemap(projection='spstere', boundinglat=bound_lat, lon_0=180, resolution='l')
     m.drawcoastlines()
     m.fillcontinents(color='grey', lake_color='aqua')
@@ -299,6 +344,7 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
     plt.title("Lat-Lon Map")
     # plt.show()
+    print("plotted map")
     print("--------------------\n")
 
     plt.show()
