@@ -8,6 +8,9 @@ import numpy as np
 from shapely.geometry import LineString
 from mpl_toolkits.basemap import Basemap
 
+section_break = "--------------------\n"
+
+
 def read_layers(file_name):
     """
     :param file_name: the name of the pickle file containing the layers, e.g. "layer_export_20181030_01.pickle"
@@ -23,7 +26,7 @@ def read_layers(file_name):
         layers = pickle.load(f)
     for layer in layers:
         print(layer.layer_name)
-    print("--------------------\n")
+    print(section_break)
     return layers
 
 
@@ -230,7 +233,7 @@ def twtt_at_point(read_layer, surface_layer, indices, corrected=True, quiet=Fals
     return twtt
 
 
-def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False):
+def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77):
     """
     :param layers: a list of Layer objects
     :param intersection_indices: a list of indices in the lat-lon arrays where the flight path
@@ -282,8 +285,40 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
                 label='X Point 2')
     # plot a line at the crossover point
     plt.axvline(x=offset, color='black', label='X Point', linestyle='--', linewidth=0.3)
+
+    # set the y axis to be in nanoseconds instead of seconds
+    plt.ylabel("Adjusted Two Way Travel Time (ns)")
+    # force the y values to be displayed in 1e-6 ticks (microseconds) instead of 1e-5 ticks (tens of microseconds)
+    plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0), useMathText=True)
+
+    def s_to_ms(x, pos):
+        """
+        :param x: the x value
+        :param pos: the position
+        :return: the x value in milliseconds
+        """
+        return '%1.1f' % (x * 1e6)
+
+    # set the y axis to be in microseconds instead of seconds
+    plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(s_to_ms))
+
+
+
+
+    # make the right side y axis show the depth in meters by converting the twtt to depth using the refractive index
+    min_y, max_y = plt.ylim()
+    n = refractive_index
+    c = 299792458  # m/s
+    v = c / n
+    # depth = twtt * v / 2
+    scale_factor = v / 2
+    print(f"scale factor: {scale_factor}")
+    plt.twinx()
+    plt.ylim(min_y * scale_factor, max_y * scale_factor)
+    plt.ylabel("Depth (m)")
+
+
     plt.xlabel("Index")
-    plt.ylabel("Adjusted Two Way Travel Time (s)")
     plt.title("Adjusted Two Way Travel Time vs Index")
     plt.legend()
 

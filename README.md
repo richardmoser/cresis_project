@@ -18,3 +18,6 @@ python dependencies (incomplete list):
 - matplotlib
 - pickle
 - basemap
+
+## Lessons Learned
+- if it says that you need to load mat73
