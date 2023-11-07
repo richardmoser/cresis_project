@@ -18,6 +18,9 @@ python dependencies (incomplete list):
 - matplotlib
 - pickle
 - basemap
+- shapely
+
 
 ## Lessons Learned
-- if it says that you need to load mat73
+- if it says that you need to load mat73, you didn't save the layer file in the OPR tools.
+-  

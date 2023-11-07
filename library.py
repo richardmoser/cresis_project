@@ -5,10 +5,51 @@ Description: This file contains classes and functions used in other files. Ideal
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 from shapely.geometry import LineString
 from mpl_toolkits.basemap import Basemap
 
 section_break = "--------------------\n"
+
+
+def s_to_ms(x, pos):
+    """
+    :param x: the x value
+    :param pos: the position
+    :return: the x value in milliseconds
+    """
+    return '%1.1f' % (x * 1e6)
+
+
+def ms_to_s(x, pos):
+    """
+    :param x: the x value
+    :param pos: the position
+    :return: the x value in seconds
+    """
+    return '%1.1f' % (x * 1e-6)
+
+
+
+def slope_around_index(layer, index, window_size=100):
+    """
+    :param layer: a Layer object
+    :param index: the index of the point in the layer
+    :param window_size: the number of points to use in the slope calculation
+    :return: the slope of the layer at the given index
+    """
+    # calculate the slope of the layer at the given index
+    # slope = rise / run
+
+    # rise = the difference in twtt between the point at index - window_size and the point at index + window_size
+    # run = the difference in meters between the point at index - window_size and the point at index + window_size
+    rise_twtt = layer.twtt[index + window_size] - layer.twtt[index - window_size]
+    rise = twtt_to_depth(rise_twtt, 1.77)
+    run = latlon_dist((layer.lat[index - window_size], layer.lon[index - window_size]),
+                        (layer.lat[index + window_size], layer.lon[index + window_size]))
+    print(f"rise: {round(rise, 2)}m, run: {round(run, 2)}m")
+    slope = rise / run
+    return slope
 
 
 def read_layers(file_name):
@@ -45,6 +86,20 @@ def twtt_to_depth(twtt, refractive_index):
     return depth
 
 
+def filenameerizer(directory, name_part1, name_part2='', name_part3=''):
+    """
+    supports up to three parts of a compound file name
+    :param name_part1: part 1
+    :param name_part2: part 2
+    :param name_part3: part 3
+    :param directory:
+    :return: a complete path to a file
+    """
+    file_name = name_part1 + name_part2 + name_part3
+    file_path = directory + file_name
+    return file_path
+
+
 def save_posit(posit):
     """
     :param posit: a Twtt_Posit object
@@ -56,6 +111,44 @@ def save_posit(posit):
     pickle.dump(posit, open("posit.pickle", "wb"))
     print("posit.pickle saved in local directory of this python file.")
     print("--------------------\n")
+
+
+def plane_velocity(latlon1, latlon2, time1, time2):
+    """
+    :param latlon1: a tuple of (lat, lon)
+    :param latlon2: a tuple of (lat, lon)
+    :param time1: the time at latlon1
+    :param time2: the time at latlon2
+    :return: the velocity of the plane between the two lat-lon points in meters per second
+    """
+    dist = latlon_dist(latlon1, latlon2)
+    print(f"dist: {dist}")
+    time = time2 - time1
+    print(f"time2: {time2}, time1: {time1}, time: {time}")
+
+    velocity = dist / time
+    velocitykmh = velocity * 3600 / 1000 # convert to km/h
+    return velocity, velocitykmh
+
+
+def latlon_dist(latlon1, latlon2):
+    """
+    :param latlon1: a tuple of (lat, lon)
+    :param latlon2: a tuple of (lat, lon)
+    :return: the distance between the two lat-lon points in meters.
+    d = 2R × sin⁻¹(√[sin²((θ₂ - θ₁)/2) + cosθ₁ × cosθ₂ × sin²((φ₂ - φ₁)/2)])
+    """
+    latlon1 = (latlon1[0] * math.pi / 180, latlon1[1] * math.pi / 180)
+    latlon2 = (latlon2[0] * math.pi / 180, latlon2[1] * math.pi / 180)
+    # convert the lat-lon points to radians
+    R = 6371 * 1000  # radius of the earth in meters
+
+    dist = 2 * R * math.asin(math.sqrt(
+        math.sin((latlon2[0] - latlon1[0]) / 2) ** 2 + math.cos(latlon1[0]) * math.cos(latlon2[0]) * math.sin(
+            (latlon2[1] - latlon1[1]) / 2) ** 2))
+    # print(f"d: {d}")
+    return dist
+
 
 def segments_intersect(segment1, segment2):
     """
@@ -110,6 +203,7 @@ def cross_point(layer, seg_length, quiet=False):
     print("--------------------")
     # create a list of line segments of length seg_length
     path_segments = []
+    segment_ends = []
     if verbose:
         print(f"Dividing the path into segments of length {seg_length}...")
     for i in range(0, len(layer.lat), seg_length):
@@ -170,6 +264,7 @@ def cross_point(layer, seg_length, quiet=False):
         for i in range(seg2_start, seg2_end):
             path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1])])
 
+
         # check for intersections between the line segments
         for i in range(len(path_segments)):
             for j in range(i + 1, len(path_segments)):
@@ -177,6 +272,7 @@ def cross_point(layer, seg_length, quiet=False):
                     intersection_points = find_segment_intersection(path_segments[i], path_segments[j])
                     if intersection_points:
                         # intersections.append([intersection_points])
+                        segment_ends.append([[path_segments[i][0], path_segments[i][1]], [path_segments[j][0], path_segments[j][1]]])
                         fine_intersections.append([intersection_points[0][0], intersection_points[1][0]])
                         index1 = seg1_start + i
                         index2 = seg2_start + j
@@ -195,7 +291,7 @@ def cross_point(layer, seg_length, quiet=False):
 
     print("--------------------\n")
 
-    return fine_intersections, intersection_indices
+    return fine_intersections, intersection_indices, segment_ends
 
 
 def twtt_at_point(read_layer, surface_layer, indices, corrected=True, quiet=False):
@@ -291,13 +387,7 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     # force the y values to be displayed in 1e-6 ticks (microseconds) instead of 1e-5 ticks (tens of microseconds)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0), useMathText=True)
 
-    def s_to_ms(x, pos):
-        """
-        :param x: the x value
-        :param pos: the position
-        :return: the x value in milliseconds
-        """
-        return '%1.1f' % (x * 1e6)
+
 
     # set the y axis to be in microseconds instead of seconds
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(s_to_ms))
@@ -331,8 +421,11 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     #  with a small zoomed out map in the corner
     # TODO: adjust time scale to be in nanoseconds instead of seconds
     # zoom_out_to_continent = False
-    zoom_out_to_continent = not zoom
 
+
+    """
+    this code sets up a polar stereographic map of antarctica with the South Pole in the center
+    zoom_out_to_continent = not zoom
     if zoom_out_to_continent:
         bound_lat = -65
     else:
@@ -346,6 +439,22 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     m.drawparallels(np.arange(-80., 81., 20.))
     m.drawmeridians(np.arange(-180., 181., 20.))
     m.drawmapboundary(fill_color='aqua')
+    """
+
+    # make m a plot of the lat-lon map for one of the layers in antarctica centered around the crossover point
+    # it should not be centered around the South Pole
+    # print("Plotting lat-lon map...")
+    # print("--------------------")
+    m = Basemap(projection='stere', lat_0=intersection_points[0][0], lon_0=intersection_points[0][1], resolution='l')
+    print(f"Centering map around crossover point: {intersection_points[0][0]}, {intersection_points[0][1]}")
+    m.drawcoastlines()
+    m.fillcontinents(color='grey', lake_color='aqua')
+    m.drawparallels(np.arange(-80., 81., 20.))
+    m.drawmeridians(np.arange(-180., 181., 20.))
+    m.drawmapboundary(fill_color='aqua')
+
+
+
     # plot the flight path
     m.plot(layers[0].lon, layers[0].lat, latlon=True, color='lightgreen', linewidth=1)
     # plot the section of the flight path in the plot above
