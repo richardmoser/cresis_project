@@ -5,12 +5,12 @@ from library import *
 zoom = False
 # zoom = True
 seg_length = 100
-season = "2018_Antarctica_DC8"
-# season = "2016_Antarctica_DC8"
-flight = "20181030_01"  # the flight date and frame number
+# season = "2018_Antarctica_DC8"
+season = "2016_Antarctica_DC8"
+# flight = "20181030_01"  # the flight date and frame number
 # flight = "20181103_01"
 # flight = "20181112_02"
-# flight = "20161024_05"
+flight = "20161024_05"
 file_name = "layer_export_" + flight + ".pickle"
 
 # TODO: make map plotter center on crossover point n. default to centering on the first crossover point if no n is given
@@ -28,18 +28,20 @@ posit = Twtt_Posit(layers[1], season, flight, intersection_indices)
 
 save_posit(posit)
 
-print(gps_time_to_seconds(layers[0].gps_time[intersection_indices[0][0]]))
+# print(gps_time_to_seconds(layers[0].gps_time[intersection_indices[0][0]]))
 
 # find the plane's velocity in m/s using the distance between the endpoints and the time between the endpoints
 time1 = gps_time_to_seconds(layers[0].gps_time[intersection_indices[0][0]])
-time2 = gps_time_to_seconds(layers[0].gps_time[intersection_indices[0][1]])
+time2 = gps_time_to_seconds(layers[0].gps_time[intersection_indices[0][0]+1])
 print(f"time1: {time1}, time2: {time2}")
-d_time = time2 - time1
+d_time = abs(time_difference(time2, time1))
 print(f"Time between segment 1 endpoints: {d_time} s")
 dist = latlon_dist(segment_ends[0][0][0], segment_ends[0][0][1])
 print(f"Distance between segment 1 endpoints: {round(dist,2)} m")
-vel = dist / d_time
-print(f"Plane velocity: {round(vel,2)} m/s")
+vel_ms = dist / d_time
+vel_kh = vel_ms * 3.6
+vel_mi = vel_kh / 1.609
+print(f"Plane velocity: {round(vel_kh,2)} km/h or {round(vel_mi,2)} mi/h")
 
 
 # vel_ms, vel_kh = plane_velocity(segment_ends[0][0][0], segment_ends[0][0][1], time1,time2)
@@ -50,7 +52,10 @@ print(f"Plane velocity: {round(vel,2)} m/s")
 
 # print(layers[1].layer_name)
 slope = slope_around_index(layers[1], intersection_indices[0][0], 2)
-print(f"{round(slope,2)}")
+print(f"slope: {round(slope,2)}")
+
+ave_slope = average_slope_around_index(layers[1], intersection_indices[0][0], 2)
+print(f"slope normalized: {round(ave_slope,2)}")
 
 
 """
@@ -96,3 +101,16 @@ print(section_break)
 """
 End of the cleanup (for now)
 """
+
+print(season, flight)
+cross_index = 0
+plot_layers_at_cross(layers, intersection_indices, intersection_points,zoom=zoom, refractive_index=my_refractive_index,cross_index=cross_index)
+# fancymap(layers, intersection_indices, intersection_points, zoom=zoom, refractive_index=my_refractive_index, cross_index=cross_index)
+
+# convert 25.8 microseconds to seconds
+time = 25.8 * 10 ** -6
+time2 = 30.5 * 10 ** -6
+
+print(f"{twtt_to_depth(time, 1.77)} m")
+print(f"{twtt_to_depth(time2, 1.77)} m")
+print(f"difference: {twtt_to_depth(time, 1.77) - twtt_to_depth(time2, 1.77)} m")

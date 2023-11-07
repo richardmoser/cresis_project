@@ -1,58 +1,19 @@
-import scipy.io as sio
-import numpy as np
-from layer_class import Layer
-import mat73
+import math
+import datetime
+from layer_class import Twtt_Posit
+from library import *
 
-# layer_20181030_01.mat
+season = "2018_Antarctica_DC8"
+flight = "20181030_01"  # the flight date and frame number
+file_name = "layer_export_" + flight + ".pickle"
 
-# load the mat file at C:\Users\rj\Documents\cresis\rds\2018_Antarctica_DC8\CSARP_layer\20181030_01\layer_20181030_01.mat
-dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181103_01\\')
+layers = read_layers(file_name)  # read in the layers from the pickle file
 
-file = 'layer_20181103_01.mat'
+# print(layers[0].gps_time[0])
 
-# mat = sio.loadmat(dir + file)
-mat = mat73.loadmat(dir + file)
+# print(datetime.datetime.fromtimestamp(layers[0].gps_time[0]))
 
-# print the keys as strings without all the extra stuff
-keys = [str(key).strip("_") for key in mat.keys()]
-print(f"mat file keys:")
-for key in keys:
-    print(key, end="")
-    # if not last key, print a comma
-    if key != keys[-1]:
-        print(",", end=" ")
+timestamp = gps_time_to_seconds(layers[0].gps_time[0])
 
-# print the shape of the lyr_name field
-# print(f"\n\nlyr_name shape: {mat['lyr_name'].shape}")
+print(timestamp.day)
 
-# print lyr_name for each layer
-# for i in range(mat['lyr_name'].shape[1]):
-    # print(f"\nlyr_name for layer {i}: {mat['lyr_name'][0][i]}")
-
-
-"""
-break
-"""
-
-dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181030_01\\')
-
-file = 'layer_20181030_01.mat'
-
-# mat = sio.loadmat(dir + file)
-mat = mat73.loadmat(dir + file)
-
-# print the keys as strings without all the extra stuff
-keys = [str(key).strip("_") for key in mat.keys()]
-print(f"mat file keys:")
-for key in keys:
-    print(key, end="")
-    # if not last key, print a comma
-    if key != keys[-1]:
-        print(",", end=" ")
-
-# print the shape of the lyr_name field
-print(f"\n\nlyr_name shape: {mat['lyr_name'].shape}")
-
-# print lyr_name for each layer
-for i in range(mat['lyr_name'].shape[1]):
-    print(f"\nlyr_name for layer {i}: {mat['lyr_name'][0][i]}")

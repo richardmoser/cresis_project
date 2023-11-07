@@ -6,6 +6,7 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import datetime
 from shapely.geometry import LineString
 from mpl_toolkits.basemap import Basemap
 
@@ -29,6 +30,23 @@ def ms_to_s(x, pos):
     """
     return '%1.1f' % (x * 1e-6)
 
+def gps_time_to_seconds(gps_time):
+    """
+    :param gps_time: the Unix Epoch time in seconds
+    :return: the gps time in a tuple of (year, month, day, hour, minute, second)
+    """
+    datetime_object = datetime.datetime.fromtimestamp(gps_time)
+
+    return datetime_object
+
+
+def time_difference(time1, time2):
+    """
+    :param time1: a datetime object
+    :param time2: a datetime object
+    :return: the difference between the two times in seconds
+    """
+    return (time2 - time1).total_seconds()
 
 
 def slope_around_index(layer, index, window_size=100):
@@ -48,6 +66,38 @@ def slope_around_index(layer, index, window_size=100):
     run = latlon_dist((layer.lat[index - window_size], layer.lon[index - window_size]),
                         (layer.lat[index + window_size], layer.lon[index + window_size]))
     print(f"rise: {round(rise, 2)}m, run: {round(run, 2)}m")
+    slope = rise / run
+    return slope
+
+
+def average_slope_around_index(layer, index, window_size=100):
+    """
+    :param layer: a Layer object
+    :param index: the index of the point in the layer
+    :param window_size: the number of points to use in the slope calculation
+    :return: the average slope of the layer at the given index
+    """
+    # calculate the average slope of the layer around the given index using a window of size window_size
+    # slope = rise / run
+
+    dist_ave_before = 0
+    dist_ave_after = 0
+    twtt_ave_before = 0
+    twtt_ave_after = 0
+
+    for i in range(index - window_size, index):
+        dist_ave_before += latlon_dist((layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1]))
+        twtt_ave_before += layer.twtt[i]
+    for i in range(index, index + window_size):
+        dist_ave_after += latlon_dist((layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1]))
+        twtt_ave_after += layer.twtt[i]
+    dist_ave_before /= window_size
+    dist_ave_after /= window_size
+    twtt_ave_before /= window_size
+    twtt_ave_after /= window_size
+    rise_twtt = twtt_ave_after - twtt_ave_before
+    rise = twtt_to_depth(rise_twtt, 1.77)
+    run = dist_ave_after - dist_ave_before
     slope = rise / run
     return slope
 
@@ -329,7 +379,8 @@ def twtt_at_point(read_layer, surface_layer, indices, corrected=True, quiet=Fals
     return twtt
 
 
-def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77):
+def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77,
+                         cross_index=0):
     """
     :param layers: a list of Layer objects
     :param intersection_indices: a list of indices in the lat-lon arrays where the flight path
@@ -337,7 +388,7 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     :param intersection_points: a list of lat-lon points where the flight path crosses over itself
     :return: nothing (plots the layers and the map)
     """
-    plt.figure(figsize=(24, 12), layout='tight')
+    plt.figure(figsize=(24, 12), layout='constrained')
     print("Plotting layers and map...")
     print("--------------------")
     print("Adjusting for surface twtt...")
@@ -354,12 +405,15 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     # second crossover point for each layer.
     offset = 500
     # plot the corrected twtt for each layer
-    plt.plot(layers[0].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
-             label=layers[0].layer_name)
-    plt.plot(layers[1].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
-             label=layers[1].layer_name + ' segment 1')
-    plt.plot(layers[1].twtt_corrected[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
-             label=layers[1].layer_name + ' segment 2')
+    plt.plot(
+        layers[0].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[cross_index][0] + offset],
+        label=layers[0].layer_name)
+    plt.plot(
+        layers[1].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[cross_index][0] + offset],
+        label=layers[1].layer_name + ' segment 1')
+    plt.plot(
+        layers[1].twtt_corrected[intersection_indices[0][1] - offset:intersection_indices[cross_index][1] + offset],
+        label=layers[1].layer_name + ' segment 2')
 
     # plot uncorrected twtt for each layer
     # plt.plot(layers[0].twtt[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
@@ -367,8 +421,7 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     # plt.plot(layers[1].twtt[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
     #             label=layers[1].layer_name + ' segment 1')
     # plt.plot(layers[1].twtt[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
-                # label=layers[1].layer_name + ' segment 2')
-
+    # label=layers[1].layer_name + ' segment 2')
 
     # invert the y-axis because the twtt increases with depth
     plt.gca().invert_yaxis()
@@ -384,16 +437,21 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
 
     # set the y axis to be in nanoseconds instead of seconds
     plt.ylabel("Adjusted Two Way Travel Time (ns)")
+    plt.xlabel("Index")
+
     # force the y values to be displayed in 1e-6 ticks (microseconds) instead of 1e-5 ticks (tens of microseconds)
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0), useMathText=True)
 
-
+    def s_to_ms(x, pos):
+        """
+        :param x: the x value
+        :param pos: the position
+        :return: the x value in milliseconds
+        """
+        return '%1.1f' % (x * 1e6)
 
     # set the y axis to be in microseconds instead of seconds
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(s_to_ms))
-
-
-
 
     # make the right side y axis show the depth in meters by converting the twtt to depth using the refractive index
     min_y, max_y = plt.ylim()
@@ -407,10 +465,16 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     plt.ylim(min_y * scale_factor, max_y * scale_factor)
     plt.ylabel("Depth (m)")
 
+    # make the top of the x axis be the distance in meters by converting the lat-lon to distance using the haversine formula
+    min_x, max_x = plt.xlim()
+    scale_factor = latlon_dist((layers[0].lat[0], layers[0].lon[0]), (layers[0].lat[1], layers[0].lon[1]))
+    print(f"scale factor: {scale_factor}")
+    plt.twiny()
+    plt.xlim(min_x * scale_factor, max_x * scale_factor)
+    plt.xlabel("Distance (m)")
 
-    plt.xlabel("Index")
     plt.title("Adjusted Two Way Travel Time vs Index")
-    plt.legend()
+    plt.legend(["legend"], fontsize='smaller', loc='upper right', bbox_to_anchor=(1.1, 1.1))
 
     """
     plot the map
@@ -422,38 +486,37 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     # TODO: adjust time scale to be in nanoseconds instead of seconds
     # zoom_out_to_continent = False
 
-
-    """
-    this code sets up a polar stereographic map of antarctica with the South Pole in the center
-    zoom_out_to_continent = not zoom
-    if zoom_out_to_continent:
-        bound_lat = -65
-    else:
-        bound_lat = -87
-    # plot the lat-lon map for one of the layers in antarctica
-    # print("Plotting lat-lon map...")
-    # print("--------------------")
-    m = Basemap(projection='spstere', boundinglat=bound_lat, lon_0=180, resolution='l')
-    m.drawcoastlines()
-    m.fillcontinents(color='grey', lake_color='aqua')
-    m.drawparallels(np.arange(-80., 81., 20.))
-    m.drawmeridians(np.arange(-180., 181., 20.))
-    m.drawmapboundary(fill_color='aqua')
-    """
+    # # this code sets up a polar stereographic map of antarctica with the South Pole in the center
+    # zoom_out_to_continent = not zoom
+    # if zoom_out_to_continent:
+    #     bound_lat = -65
+    # else:
+    #     bound_lat = -87
+    # # plot the lat-lon map for one of the layers in antarctica
+    # # print("Plotting lat-lon map...")
+    # # print("--------------------")
+    # m = Basemap(projection='spstere', boundinglat=bound_lat, lon_0=180, resolution='l')
+    # m.drawcoastlines()
+    # m.fillcontinents(color='grey', lake_color='aqua')
+    # m.drawparallels(np.arange(-80., 81., 20.))
+    # m.drawmeridians(np.arange(-180., 181., 20.))
+    # m.drawmapboundary(fill_color='aqua')
 
     # make m a plot of the lat-lon map for one of the layers in antarctica centered around the crossover point
-    # it should not be centered around the South Pole
+    # m should be an orthographic map centered around the crossover point
     # print("Plotting lat-lon map...")
     # print("--------------------")
-    m = Basemap(projection='stere', lat_0=intersection_points[0][0], lon_0=intersection_points[0][1], resolution='l')
-    print(f"Centering map around crossover point: {intersection_points[0][0]}, {intersection_points[0][1]}")
+    lat_0 = intersection_points[cross_index][0]
+    lon_0 = intersection_points[cross_index][1]
+    m = Basemap(projection='ortho', lat_0=lat_0, lon_0=lon_0, llcrnrx=-50000, llcrnry=-50000, urcrnrx=50000,
+                urcrnry=50000,
+                resolution='c')
+
     m.drawcoastlines()
     m.fillcontinents(color='grey', lake_color='aqua')
     m.drawparallels(np.arange(-80., 81., 20.))
     m.drawmeridians(np.arange(-180., 181., 20.))
     m.drawmapboundary(fill_color='aqua')
-
-
 
     # plot the flight path
     m.plot(layers[0].lon, layers[0].lat, latlon=True, color='lightgreen', linewidth=1)
@@ -478,17 +541,117 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     # plot the South Pole
     m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
     # plot the crossover points
-    for point in intersection_points:
-        m.scatter(point[1], point[0], latlon=True, color='darkred', linewidth=1, label='Crossover Point')
-        plt.text(m(point[1], point[0])[0], m(point[1], point[0])[1] - 10000, 'Crossover Point\n\n',
-                 fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
+    # for point in intersection_points:
+    #     m.scatter(point[1], point[0], latlon=True, color='darkred', linewidth=1, label='Crossover Point')
+    #     plt.text(m(point[1], point[0])[0], m(point[1], point[0])[1] - 10000, 'Crossover Point\n\n',
+    #              fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
+
+    m.scatter(intersection_points[cross_index][1], intersection_points[cross_index][0], latlon=True, color='darkred',
+              linewidth=1, label='Crossover Point')
+    plt.text(m(intersection_points[cross_index][1], intersection_points[cross_index][0])[0],
+             m(intersection_points[cross_index][1], intersection_points[cross_index][0])[1] - 10000,
+             'Crossover Point\n\n',
+             fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
+
     # plot the crossover line
 
     x, y = m(0, -90)
     plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
     plt.title("Lat-Lon Map")
-    # plt.show()
+    # set tight layout
+    # plt.tight_layout()
+
+    # save the plot
+    plt.savefig("layer_plot.png", dpi=250)
+
+    plt.show()
+
     print("plotted map")
     print("--------------------\n")
 
+
+def fancymap(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77,
+                         cross_index=0):
+    """
+    :param layers: a list of Layer objects
+    :param intersection_indices: a list of indices in the lat-lon arrays where the flight path
+    crosses over itself
+    :param intersection_points: a list of lat-lon points where the flight path crosses over itself
+    :return: nothing (plots the layers and the map)
+    """
+    offset = 500
+
+    plt.figure(figsize=(12, 12))
+    print("Plotting layers and map...")
+    print("--------------------")
+    print("Adjusting for surface twtt...")
+    for layer in layers:
+        corrected_layer = layer.twtt - layers[0].twtt
+        layer.twtt_corrected = corrected_layer
+
+    """
+    plot the map
+    """
+
+    lat_0 = intersection_points[cross_index][0]
+    lon_0 = intersection_points[cross_index][1]
+    m = Basemap(projection='ortho', lat_0=lat_0, lon_0=lon_0, llcrnrx=-50000, llcrnry=-50000, urcrnrx=50000,
+                urcrnry=50000,
+                resolution='c')
+
+    m.drawcoastlines()
+    m.fillcontinents(color='grey', lake_color='aqua')
+    m.drawparallels(np.arange(-80., 81., 20.))
+    m.drawmeridians(np.arange(-180., 181., 20.))
+    m.drawmapboundary(fill_color='aqua')
+
+    # plot the flight path
+    m.plot(layers[0].lon, layers[0].lat, latlon=True, color='lightgreen', linewidth=1)
+    # plot the section of the flight path in the plot above
+    m.plot(layers[0].lon[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+           layers[0].lat[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset], latlon=True,
+           color='red', linewidth=1)
+    m.plot(layers[0].lon[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
+           layers[0].lat[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset], latlon=True,
+           color='green', linewidth=1)
+    # plot labels for the flight paths at their start points
+    plt.text(
+        m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[
+            0],
+        m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[
+            1], '\nsegment 1', fontsize='smaller', fontweight='bold', ha='right', va='top', color='red')
+    plt.text(
+        m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[
+            0],
+        m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[
+            1], '\nsegment 2', fontsize='smaller', fontweight='bold', ha='left', va='top', color='green')
+    # plot the South Pole
+    m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
+    # plot the crossover points
+    # for point in intersection_points:
+    #     m.scatter(point[1], point[0], latlon=True, color='darkred', linewidth=1, label='Crossover Point')
+    #     plt.text(m(point[1], point[0])[0], m(point[1], point[0])[1] - 10000, 'Crossover Point\n\n',
+    #              fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
+
+    m.scatter(intersection_points[cross_index][1], intersection_points[cross_index][0], latlon=True, color='darkred',
+              linewidth=1, label='Crossover Point')
+    plt.text(m(intersection_points[cross_index][1], intersection_points[cross_index][0])[0],
+             m(intersection_points[cross_index][1], intersection_points[cross_index][0])[1] - 10000,
+             'Crossover Point\n\n',
+             fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
+
+    # plot the crossover line
+
+    x, y = m(0, -90)
+    plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
+    plt.title("Lat-Lon Map")
+    # set tight layout
+    # plt.tight_layout()
+
+    # save the plot
+    plt.savefig("fancy_map_only.png", dpi=1500)
+
     plt.show()
+
+    print("plotted map")
+    print("--------------------\n")
