@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import datetime
+import pyproj
 from shapely.geometry import LineString
 from mpl_toolkits.basemap import Basemap
 
@@ -146,20 +147,6 @@ def twtt_to_depth(twtt, refractive_index):
     return depth
 
 
-def find_heading(lat1, lon1, lat2, lon2):
-    """
-    :param lat1: latitude of the first point
-    :param lon1: longitude of the first point
-    :param lat2: latitude of the second point
-    :param lon2: longitude of the second point
-    :return: the heading in degrees clockwise from north
-    """
-    # find the heading from the first point to the second point
-    heading = math.atan2(lon2 - lon1, lat2 - lat1) * 180 / math.pi
-    print(f"heading: {heading}")
-    return heading
-
-
 def filenameerizer(directory, name_part1, name_part2='', name_part3=''):
     """
     supports up to three parts of a compound file name
@@ -203,6 +190,24 @@ def plane_velocity(latlon1, latlon2, time1, time2):
     velocity = dist / time
     velocitykmh = velocity * 3600 / 1000 # convert to km/h
     return velocity, velocitykmh
+
+
+def find_heading(layer, index, window_size=100):
+    """
+    :param layer: a Layer object
+    :param index: the index of the point in the layer
+    :param window_size: the number of points to use in the slope calculation
+    :return: the bearing of the plane that flew through the points.
+    This has nothing to do with the slope of the layer. only the lat-lon points.
+    """
+    geodesic = pyproj.Geod(ellps='WGS84')
+    lon1 = layer.lon[index - window_size]
+    lat1 = layer.lat[index - window_size]
+    lon2 = layer.lon[index + window_size]
+    lat2 = layer.lat[index + window_size]
+
+    fwd_azimuth, back_azimuth, distance = geodesic.inv(lon1, lat1, lon2, lat2)
+    return fwd_azimuth
 
 
 def latlon_dist(latlon1, latlon2):
@@ -595,7 +600,7 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
 
 
 def fancymap(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77,
-                         cross_index=0):
+                         cross_index=0, dpi=1500):
     """
     :param layers: a list of Layer objects
     :param intersection_indices: a list of indices in the lat-lon arrays where the flight path
@@ -673,7 +678,7 @@ def fancymap(layers, intersection_indices, intersection_points, zoom=False, refr
     # plt.tight_layout()
 
     # save the plot
-    plt.savefig("fancy_map_only.png", dpi=1500)
+    plt.savefig("fancy_map_only.png", dpi=dpi)
 
     plt.show()
 

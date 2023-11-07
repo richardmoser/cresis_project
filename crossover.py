@@ -5,12 +5,12 @@ from library import *
 zoom = False
 # zoom = True
 seg_length = 100
-# season = "2018_Antarctica_DC8"
-season = "2016_Antarctica_DC8"
-# flight = "20181030_01"  # the flight date and frame number
+season = "2018_Antarctica_DC8"
+# season = "2016_Antarctica_DC8"
+flight = "20181030_01"  # the flight date and frame number
 # flight = "20181103_01"
 # flight = "20181112_02"
-flight = "20161024_05"
+# flight = "20161024_05"
 file_name = "layer_export_" + flight + ".pickle"
 
 # TODO: make map plotter center on crossover point n. default to centering on the first crossover point if no n is given
@@ -57,8 +57,10 @@ print(f"slope: {round(slope,2)}")
 ave_slope = average_slope_around_index(layers[1], intersection_indices[0][0], 4)
 print(f"slope normalized: {round(ave_slope,2)}")
 
-# find_heading(layers[0], intersection_indices[0][0], 2)
+heading = find_heading(layers[0], intersection_indices[0][0], 2)
+print(f"heading: {round(heading,2)}")
 
+fancymap(layers, intersection_indices, intersection_points, zoom=zoom, refractive_index=1.77, cross_index=0, dpi=150)
 
 
 interested = False
