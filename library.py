@@ -91,13 +91,23 @@ def average_slope_around_index(layer, index, window_size=100):
     for i in range(index, index + window_size):
         dist_ave_after += latlon_dist((layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1]))
         twtt_ave_after += layer.twtt[i]
+    # print(f"distance in the {window_size} points before the index: {dist_ave_before}")
+    # print(f"distance in the {window_size} points after the index: {dist_ave_after}")
+    # print(f"twtt in the {window_size} points before the index: {twtt_ave_before}")
+    # print(f"twtt in the {window_size} points after the index: {twtt_ave_after}")
     dist_ave_before /= window_size
     dist_ave_after /= window_size
     twtt_ave_before /= window_size
     twtt_ave_after /= window_size
-    rise_twtt = twtt_ave_after - twtt_ave_before
-    rise = twtt_to_depth(rise_twtt, 1.77)
-    run = dist_ave_after - dist_ave_before
+    # print(f"average distance before the index: {dist_ave_before}")
+    # print(f"average distance after the index: {dist_ave_after}")
+    # print(f"average twtt before the index: {twtt_to_depth(twtt_ave_before, 1.77)}")
+    # print(f"average twtt after the index: {twtt_to_depth(twtt_ave_after, 1.77)}")
+    rise = twtt_to_depth(twtt_ave_after, 1.77) - twtt_to_depth(twtt_ave_before, 1.77)
+    # rise = twtt_to_depth(rise_twtt, 1.77)
+    # print(f"rise: {rise}m")
+    run = dist_ave_after + dist_ave_before
+    # print(f"run: {run}m")
     slope = rise / run
     return slope
 
@@ -134,6 +144,20 @@ def twtt_to_depth(twtt, refractive_index):
     v = c / n
     depth = twtt * v / 2
     return depth
+
+
+def find_heading(lat1, lon1, lat2, lon2):
+    """
+    :param lat1: latitude of the first point
+    :param lon1: longitude of the first point
+    :param lat2: latitude of the second point
+    :param lon2: longitude of the second point
+    :return: the heading in degrees clockwise from north
+    """
+    # find the heading from the first point to the second point
+    heading = math.atan2(lon2 - lon1, lat2 - lat1) * 180 / math.pi
+    print(f"heading: {heading}")
+    return heading
 
 
 def filenameerizer(directory, name_part1, name_part2='', name_part3=''):
