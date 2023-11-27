@@ -1,6 +1,7 @@
 import math
 from layer_class import Twtt_Posit
-from library import *
+from functions import *
+from crossover_class import *
 
 zoom = False
 # zoom = True
@@ -60,10 +61,11 @@ print(f"slope normalized: {round(ave_slope,2)}")
 heading = find_heading(layers[0], intersection_indices[0][0], 2)
 print(f"heading: {round(heading,2)}")
 
-fancymap(layers, intersection_indices, intersection_points, zoom=zoom, refractive_index=1.77, cross_index=0, dpi=150)
+# fancymap(layers, intersection_indices, intersection_points, zoom=zoom, refractive_index=1.77, cross_index=0, dpi=150)
 
 
 interested = False
+# interested = True
 
 if interested:
     print("Comparing my depth to CReSIS depth...")
@@ -109,7 +111,7 @@ if interested:
 
     print(season, flight)
     cross_index = 0
-    # plot_layers_at_cross(layers, intersection_indices, intersection_points,zoom=zoom, refractive_index=my_refractive_index,cross_index=cross_index)
+    plot_layers_at_cross(layers, intersection_indices, intersection_points,zoom=zoom, refractive_index=my_refractive_index,cross_index=cross_index)
     # fancymap(layers, intersection_indices, intersection_points, zoom=zoom, refractive_index=my_refractive_index, cross_index=cross_index)
 
     # convert 25.8 microseconds to seconds

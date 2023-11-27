@@ -1,7 +1,7 @@
 import math
 import datetime
 from layer_class import Twtt_Posit
-from library import *
+from functions import *
 
 season = "2018_Antarctica_DC8"
 flight = "20181030_01"  # the flight date and frame number

@@ -7,7 +7,7 @@ import math
 from layer_class import Twtt_Posit
 # from mpl_toolkits.basemap import Basemap
 # from shapely.geometry import LineString
-from library import *
+from functions import *
 
 section_break = "--------------------\n"
 
