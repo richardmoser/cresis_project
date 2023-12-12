@@ -29,11 +29,11 @@ posit = Twtt_Posit(layers[1], season, flight, intersection_indices)
 
 save_posit(posit)
 
-# print(gps_time_to_seconds(layers[0].gps_time[intersection_indices[0][0]]))
+# print(gps_time_to_date(layers[0].gps_time[intersection_indices[0][0]]))
 
 # find the plane's velocity in m/s using the distance between the endpoints and the time between the endpoints
-time1 = gps_time_to_seconds(layers[0].gps_time[intersection_indices[0][0]])
-time2 = gps_time_to_seconds(layers[0].gps_time[intersection_indices[0][0]+1])
+time1 = gps_time_to_date(layers[0].gps_time[intersection_indices[0][0]])
+time2 = gps_time_to_date(layers[0].gps_time[intersection_indices[0][0]+1])
 print(f"time1: {time1}, time2: {time2}")
 d_time = abs(time_difference(time2, time1))
 print(f"Time between segment 1 endpoints: {d_time} s")

@@ -31,11 +31,12 @@ def ms_to_s(x, pos):
     """
     return '%1.1f' % (x * 1e-6)
 
-def gps_time_to_seconds(gps_time):
+def gps_time_to_date(gps_time):
     """
     :param gps_time: the Unix Epoch time in seconds
     :return: the gps time in a tuple of (year, month, day, hour, minute, second)
     """
+
     datetime_object = datetime.datetime.fromtimestamp(gps_time)
 
     return datetime_object
@@ -263,6 +264,7 @@ def find_segment_intersection(segment1, segment2):
         else:  # intersection is not an end point of either segment, it is a crossover point
             return [tuple(intersection.xy[0]), tuple(intersection.xy[1])]
     return None
+
 
 
 def cross_point(layer, seg_length, quiet=False):
@@ -510,36 +512,24 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     """
     plt.subplot(1, 2, 2)
 
-    # TODO: make the right pane a zoomed in map centered around the X point
-    #  with a small zoomed out map in the corner
-    # TODO: adjust time scale to be in nanoseconds instead of seconds
-    # zoom_out_to_continent = False
+    # TODO: add an offset to the zoom settings so that the crossover point is in the center of the zoomed in map
 
     # # this code sets up a polar stereographic map of antarctica with the South Pole in the center
-    # zoom_out_to_continent = not zoom
-    # if zoom_out_to_continent:
-    #     bound_lat = -65
-    # else:
-    #     bound_lat = -87
-    # # plot the lat-lon map for one of the layers in antarctica
-    # # print("Plotting lat-lon map...")
-    # # print("--------------------")
-    # m = Basemap(projection='spstere', boundinglat=bound_lat, lon_0=180, resolution='l')
-    # m.drawcoastlines()
-    # m.fillcontinents(color='grey', lake_color='aqua')
-    # m.drawparallels(np.arange(-80., 81., 20.))
-    # m.drawmeridians(np.arange(-180., 181., 20.))
-    # m.drawmapboundary(fill_color='aqua')
-
-    # make m a plot of the lat-lon map for one of the layers in antarctica centered around the crossover point
-    # m should be an orthographic map centered around the crossover point
-    # print("Plotting lat-lon map...")
-    # print("--------------------")
+    zoom_out_to_continent = not zoom
+    if zoom_out_to_continent:
+        llcrnrx = -400000
+        llcrnry = -400000
+        urcrnrx = 250000
+        urcrnry = 250000
+    else:
+        llcrnrx= -50000
+        llcrnry= -50000
+        urcrnrx= 50000
+        urcrnry= 50000
     lat_0 = intersection_points[cross_index][0]
     lon_0 = intersection_points[cross_index][1]
-    m = Basemap(projection='ortho', lat_0=lat_0, lon_0=lon_0, llcrnrx=-50000, llcrnry=-50000, urcrnrx=50000,
-                urcrnry=50000,
-                resolution='c')
+    m = Basemap(projection='ortho', lat_0=lat_0, lon_0=lon_0, llcrnrx=llcrnrx,
+                llcrnry=llcrnry, urcrnrx=urcrnrx, urcrnry=urcrnry, resolution='c')
 
     m.drawcoastlines()
     m.fillcontinents(color='grey', lake_color='aqua')
@@ -570,17 +560,17 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     # plot the South Pole
     m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
     # plot the crossover points
-    # for point in intersection_points:
-    #     m.scatter(point[1], point[0], latlon=True, color='darkred', linewidth=1, label='Crossover Point')
-    #     plt.text(m(point[1], point[0])[0], m(point[1], point[0])[1] - 10000, 'Crossover Point\n\n',
-    #              fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
+    for point in intersection_points:
+        m.scatter(point[1], point[0], latlon=True, color='darkred', linewidth=1, label='Crossover Point')
+        plt.text(m(point[1], point[0])[0], m(point[1], point[0])[1] - 10000, 'Crossover Point\n\n',
+                 fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
 
-    m.scatter(intersection_points[cross_index][1], intersection_points[cross_index][0], latlon=True, color='darkred',
-              linewidth=1, label='Crossover Point')
-    plt.text(m(intersection_points[cross_index][1], intersection_points[cross_index][0])[0],
-             m(intersection_points[cross_index][1], intersection_points[cross_index][0])[1] - 10000,
-             'Crossover Point\n\n',
-             fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
+    # m.scatter(intersection_points[cross_index][1], intersection_points[cross_index][0], latlon=True, color='darkred',
+    #           linewidth=1, label='Crossover Point')
+    # plt.text(m(intersection_points[cross_index][1], intersection_points[cross_index][0])[0],
+    #          m(intersection_points[cross_index][1], intersection_points[cross_index][0])[1] - 10000,
+    #          'Crossover Point\n\n',
+    #          fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
 
     # plot the crossover line
 

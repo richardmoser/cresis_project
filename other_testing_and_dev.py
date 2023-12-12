@@ -13,7 +13,7 @@ layers = read_layers(file_name)  # read in the layers from the pickle file
 
 # print(datetime.datetime.fromtimestamp(layers[0].gps_time[0]))
 
-timestamp = gps_time_to_seconds(layers[0].gps_time[0])
+timestamp = gps_time_to_date(layers[0].gps_time[0])
 
 print(timestamp.day)
 

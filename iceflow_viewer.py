@@ -23,10 +23,10 @@ def main():
         iceflow_data = iceflow.iceflow_loader(filename)
         print("The iceflow data pickle file was successfully created.")
 
-    print(f"Iceflow data array layout is x, y, velocity_x, velocity_y, latitude, longitude.")
+    print(f"Iceflow data array layout is 0:x, 1:y, 2:v_x, 3:v_y, 4:latitude, 5:longitude\n\n")
 
-    test = iceflow.find_nearest_x_and_y(-76, 165, iceflow_data)
-    print(test)
+    # test = iceflow.find_nearest_x_and_y(-76, 165, iceflow_data)
+    # print(test)
     print(iceflow_data[2])
 
 
