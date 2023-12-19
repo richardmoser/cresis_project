@@ -15,7 +15,7 @@ class Crossover:
     """
 
     def __init__(self, layer, season, flight, crossover_points, crossover_indices, segment_ends, plane_velocity,
-                 slope, average_slope, heading, ice_flow_direction=None):
+                 slope, heading, ice_flow_direction=None, ice_flow_direction_error=None):
         """
         This method initializes the Crossover object.
         :param layer: The layer object that the crossover point data is from.
@@ -29,6 +29,8 @@ class Crossover:
         :param slope: The slope.
         :param average_slope: The average slope.
         :param heading: The heading.
+        :param ice_flow_direction: The ice flow direction at the crossover point.
+        :param ice_flow_error: The difference between the heading and the ice flow direction.
         """
         self.layer_name = layer.layer_name
         self.season = season
@@ -38,7 +40,7 @@ class Crossover:
         self.segment_ends = segment_ends
         self.plane_velocity = plane_velocity
         self.slope = slope
-        self.average_slope = average_slope
+        # self.average_slope = average_slope
         self.heading = heading
         self.twtt1 = layer.twtt[crossover_indices[0][0]]
         self.twtt2 = layer.twtt[crossover_indices[0][1]]
@@ -51,8 +53,10 @@ class Crossover:
         self.ice_flow_direction = ice_flow_direction
         if self.ice_flow_direction is not None:
             self.ice_flow_offset = self.heading - self.ice_flow_direction
+            self.ice_flow_direction_error = ice_flow_direction_error
         else:
-            self.ice_flow_offset
+            self.ice_flow_offset = None
+            self.ice_flow_direction_error = None
         # TODO: looks like this is going to ignore all but the first crossover point. Update to handle multiple
         #  crossover points.
 

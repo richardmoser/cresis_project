@@ -19,21 +19,23 @@ section_break = "--------------------\n"
 def mat_pickler(season, flight, testing_mode=False, readout=False, save=True, plot_layer=False):
     print("Reading data files...")
     print("--------------------")
+    segment_data_file = 'Data_' + flight + '_'
+    layer_attributes_file = 'layer_' + flight + '.mat'
+
     # set the directory, segment data file, layer attributes file, and start and end frames
     if testing_mode:
         # the dir is the current directory + the test_data folder
         dir = os.getcwd() + '\\test_data\\' + flight + '\\'
 
         # dir = ('test_data') + '\\'
-        segment_data_file = 'Data_'+ flight + '_'
         # contains all of the actual data such as twtt, lat, lon, etc.
-        layer_attributes_file = 'layer_' + flight + '.mat'
         # contains the attributes of the layer such as name, param, etc.
     else:
-        dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
-        segment_data_file = 'Data_' + flight + '_'
+        # dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
+            # leaving because it might actually be good. the below line works for 2018_Antarctica_DC8 at least as it
+            # has the CSARP_layerData folder instead of CSARP_layer.
+        dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layerData\\' + flight + '\\')
         # contains all of the actual data such as twtt, lat, lon, etc.
-        layer_attributes_file = 'layer_' + flight + '.mat'
         # contains the attributes of the layer such as name, param, etc.
         print(f"layer_attributes_file: {layer_attributes_file}")
         # contains the attributes of the layer such as name, param, etc.
@@ -356,7 +358,7 @@ def save_posit(posit):
     print("--------------------\n")
 
 
-def plane_velocity(latlon1, latlon2, time1, time2):
+def plane_velocity_at_latlon(latlon1, latlon2, time1, time2):
     """
     :param latlon1: a tuple of (lat, lon)
     :param latlon2: a tuple of (lat, lon)
@@ -379,7 +381,7 @@ def find_heading(layer, index, window_size=100):
     :param layer: a Layer object
     :param index: the index of the point in the layer
     :param window_size: the number of points to use in the slope calculation
-    :return: the bearing of the plane that flew through the points.
+    :return: the bearing of the current that flew through the points.
     This has nothing to do with the slope of the layer. only the lat-lon points.
     """
     geodesic = pyproj.Geod(ellps='WGS84')
@@ -399,8 +401,8 @@ def latlon_dist(latlon1, latlon2):
     :return: the distance between the two lat-lon points in meters.
     d = 2R × sin⁻¹(√[sin²((θ₂ - θ₁)/2) + cosθ₁ × cosθ₂ × sin²((φ₂ - φ₁)/2)])
     """
-    latlon1 = (latlon1[0] * math.pi / 180, latlon1[1] * math.pi / 180)
-    latlon2 = (latlon2[0] * math.pi / 180, latlon2[1] * math.pi / 180)
+    latlon1 = (float(latlon1[0]) * math.pi / 180, float(latlon1[1]) * math.pi / 180)
+    latlon2 = (float(latlon2[0]) * math.pi / 180, float(latlon2[1]) * math.pi / 180)
     # convert the lat-lon points to radians
     R = 6371 * 1000  # radius of the earth in meters
 

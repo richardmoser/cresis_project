@@ -72,6 +72,25 @@ def iceflow_loader(pickle_file_name):
     return iceflow_data
 
 
+def get_iceflow_data():
+    """
+    for loading the data into crossover programs and similar
+    :return: the data
+    """
+    try:
+        iceflow_data = iceflow_data_file_loader()
+        print("The iceflow data pickle file was found and loaded.")
+    except FileNotFoundError:
+        print("The iceflow data pickle file was not found. Creating a new one...")
+        filename = iceflow_saver()
+        iceflow_data = iceflow_loader(filename)
+        print("The iceflow data pickle file was successfully created.")
+
+    print(f"Iceflow data array layout is 0:x, 1:y, 2:v_x, 3:v_y, 4:latitude, 5:longitude")
+
+    return iceflow_data
+
+
 def xy_to_lonlat(x, y):
     """
     This function is used to convert x and y coordinates to lat and lon coordinates.
@@ -164,6 +183,7 @@ def generate_spiral_indices(center_x, center_y, max_radius):
         x -= 1
         y -= 1
         yield x, y
+        
 
 
 def find_nearest_unmasked_x_and_y(x, y, iceflow_data):

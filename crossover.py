@@ -65,7 +65,7 @@ print(f"heading: {round(heading,2)}")
 
 
 interested = False
-# interested = True
+interested = True
 
 if interested:
     print("Comparing my depth to CReSIS depth...")
