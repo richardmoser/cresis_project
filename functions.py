@@ -12,7 +12,7 @@ import datetime
 import pyproj
 from shapely.geometry import LineString
 from mpl_toolkits.basemap import Basemap
-from layer_class import Layer
+from CReSIS_project_classes import *
 
 section_break = "--------------------\n"
 
@@ -540,19 +540,31 @@ def cross_point(layer, seg_length, quiet=False):
                         fine_intersections.append([intersection_points[0][0], intersection_points[1][0]])
                         index1 = seg1_start + i
                         index2 = seg2_start + j
-                        print(f"Segments {seg1} and {seg2} intersect near indices "
-                              f"{index1} and {index2}\nThis corresponds roughly to the "
-                              f"lat-lon: ({fine_intersections[-1][0]}, {fine_intersections[-1][1]})")
+                        if verbose:
+                            print(f"Segments {seg1} and {seg2} intersect near indices "
+                                  f"{index1} and {index2}\nThis corresponds roughly to the "
+                                  f"lat-lon: ({fine_intersections[-1][0]}, {fine_intersections[-1][1]})")
                         intersection_indices.append([index1, index2])
     print(f"Number of intersections: {len(fine_intersections)}")
     if verbose:
         print(f"Number of rough intersections: {len(rough_intersections)}")
         print(f"Number of intersection indices: {len(intersection_indices)}")
-        print(f"Indices: {intersection_indices}")
-        for index in intersection_indices:
-            print(f"Index: {index}")
-    # print(f"Intersection at index {intersection_indices[0][0]} and {intersection_indices[0][1]}")
+        # print(f"Indices: {intersection_indices}")
+        # for index in intersection_indices:
+        #     print(f"Index: {index}: ")
+    for i in range(len(intersection_indices)):
+        print(f"Index {i}: \n"
+              f"indices: \t{intersection_indices[i]}\n"
+              f"lat-lon: \t({fine_intersections[i][0]}, {fine_intersections[i][1]})\n"
+                f"segment ends: \t{segment_ends[i]}\n"
+              f"lat-lon by layer: \t({layer.lat[intersection_indices[i][0]]}, {layer.lon[intersection_indices[i][0]]})")
 
+    # print(f"Intersection at index {intersection_indices[0][0]} and {intersection_indices[0][1]}")
+    for i in range(len(intersection_indices)):
+        # TODO Error 1: correct for the fine intersection points being wrong for some reason
+            # (lat is close but lon is 6 degrees off in the 20181112_02 flight)
+        fine_intersections[i][0] = layer.lat[intersection_indices[i][0]]
+        fine_intersections[i][1] = layer.lon[intersection_indices[i][0]]
     print("--------------------\n")
 
     return fine_intersections, intersection_indices, segment_ends

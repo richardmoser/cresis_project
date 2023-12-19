@@ -7,12 +7,7 @@ format that is used to store multidimensional data. This file contains the ice f
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
-import matplotlib.cm as cmx
 from netCDF4 import Dataset
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
 from pyproj import Transformer
 import pickle
 
@@ -91,7 +86,8 @@ def get_iceflow_data():
     return iceflow_data
 
 
-def xy_to_lonlat(x, y):
+# TODO: delete this cell once xy<->latlon conversion debugging is complete
+def xy_to_latlon(x, y):
     """
     This function is used to convert x and y coordinates to lat and lon coordinates.
     :param x: the x coordinate to convert
@@ -99,30 +95,34 @@ def xy_to_lonlat(x, y):
     :return: the lat and lon coordinates
     # TODO: WHY ARE YOU THE WAY YOU ARE???
     """
-    # converts Antarctic Polar Stereographic to standard lat-lon
-    transformer = Transformer.from_crs("EPSG:3031", "EPSG:4326")
-    point = transformer.transform(x, y)
+    transformer = Transformer.from_crs("EPSG:3031", "EPSG:4326", accuracy=10)
+        # transform Antarctic Polar Stereographic to standard lat-lon
+    point = transformer.transform(x, y, errcheck=True)
     point = (point[0], 270 - point[1])  # I'm not sure why, but this is necessary to get the correct longitude
     if point[1] > 360:  # if the longitude is greater than 360, subtract 360
         point = (point[0], point[1] - 360)
-    elif point[1] < 0:  # if the longitude is less than 0, add 360
-        point = (point[0], point[1] + 360)
+    elif point[1] > 0: # if the longitude is greater than 0, subtract 360
+        point = (point[0], point[1] - 360)
     return point
 
 
-def lonlat_to_xy(lat, lon):
+def latlon_to_xy(lat, lon):
     """
     This function is used to convert lat and lon coordinates to x and y coordinates.
-    :param lat: the latitude to convert
     :param lon: the longitude to convert
+    :param lat: the latitude to convert
     :return: the x and y coordinates
     # TODO: WHY ARE YOU THE WAY YOU ARE???
     """
-    transformer = Transformer.from_crs("EPSG:4326", "EPSG:3031")  # standard lat-lon to Antarctic Polar Stereographic
-    point = transformer.transform(lat, lon)
+    transformer = Transformer.from_crs("EPSG:4326", "EPSG:3031", accuracy=10)
+        # transform standard lat-lon to Antarctic Polar Stereographic
+    # point = transformer.transform(lat, lon, errcheck=True)
+    point = transformer.transform(lat, lon, errcheck=True)
+    # print(point)
     point = (- int(point[1]), - int(point[0]))
-    # ok this one you *REALLY* can't ask me why it is like this. If you don't do this, the lat and lon are flipped and
-    # negative relative to the actual values. I don't like it either
+        # ok this one you *REALLY* can't ask me why it is like this. If you don't do this, the lat and lon are flipped and
+        # negative relative to the actual values. I don't like it either.
+    # print(f"lat-lon: {lat, lon}\nx-y: {point}")
     return point
 
 
@@ -148,7 +148,7 @@ def flow_at_lat_lon(lat, lon, iceflow_data):
     :param iceflow_data: the iceflow data in a readable format
     :return: the flow at a given lat and lon
     """
-    x, y = lonlat_to_xy(lat, lon)
+    x, y = latlon_to_xy(lon, lat)
     print(f"x-y: {x, y}, lat-lon: {lat, lon}")
     x_index, y_index = find_nearest_x_and_y(x, y, iceflow_data)
     print(f"nearest x and y: {iceflow_data[0][x_index], iceflow_data[1][y_index]}")
