@@ -141,6 +141,7 @@ def find_nearest_x_and_y(x, y, iceflow_data):
 
 
 def flow_at_lat_lon(lat, lon, iceflow_data):
+    # TODO: make this incorporate the find_nearest_x_and_y function and the find_nearest_unmasked_x_and_y function
     """
     This function is used to find the flow at a given lat and lon.
     :param lat: the latitude to find the flow at
@@ -152,6 +153,18 @@ def flow_at_lat_lon(lat, lon, iceflow_data):
     print(f"x-y: {x, y}, lat-lon: {lat, lon}")
     x_index, y_index = find_nearest_x_and_y(x, y, iceflow_data)
     print(f"nearest x and y: {iceflow_data[0][x_index], iceflow_data[1][y_index]}")
+    return iceflow_data[2][x_index][y_index], iceflow_data[3][x_index][y_index]
+
+
+def flow_at_x_y(x, y, iceflow_data):
+    """
+    This function is used to find the flow at a given x and y.
+    :param x: the x value to find the flow at
+    :param y: the y value to find the flow at
+    :param iceflow_data: the iceflow data in a readable format
+    :return: the flow at a given x and y
+    """
+    x_index, y_index = find_nearest_unmasked_x_and_y(x, y, iceflow_data)
     return iceflow_data[2][x_index][y_index], iceflow_data[3][x_index][y_index]
 
 
@@ -186,7 +199,7 @@ def generate_spiral_indices(center_x, center_y, max_radius):
         
 
 
-def find_nearest_unmasked_x_and_y(x, y, iceflow_data):
+def find_nearest_unmasked_x_and_y(x, y, iceflow_data, max_radius=100):
     """
     Find the nearest x and y value in the iceflow data to an input x and y value.
     If the ice velocity is masked at that point, it will return the next nearest point that is not masked.
@@ -194,7 +207,7 @@ def find_nearest_unmasked_x_and_y(x, y, iceflow_data):
     x_index_base = (np.abs(iceflow_data[0] - x)).argmin()
     y_index_base = (np.abs(iceflow_data[1] - y)).argmin()
 
-    for x_offset, y_offset in generate_spiral_indices(0, 0, max_radius=100):
+    for x_offset, y_offset in generate_spiral_indices(0, 0, max_radius=max_radius):
         x_index = x_index_base + x_offset
         y_index = y_index_base + y_offset
 
@@ -208,6 +221,20 @@ def find_nearest_unmasked_x_and_y(x, y, iceflow_data):
 
     # Return the original indices if no unmasked point is found in the search area
     return x_index_base, y_index_base
+
+
+def nearest_flow_to_latlon(lat, lon, iceflow_data):
+    """
+    :param lat: the latitude of the point
+    :param lon: the longitude of the point
+    :param iceflow_data: the iceflow data
+    :return: the nearest iceflow data to the lat-lon point
+    """
+    # find the nearest x and y values in the iceflow data
+    x, y = latlon_to_xy(lat, lon)
+    x, y = find_nearest_unmasked_x_and_y(x, y, iceflow_data, max_radius=1000)
+    flow = flow_at_x_y(x, y, iceflow_data)
+    return flow
 
 
 def plot_spiral(x_center, y_center, max_radius=4):
