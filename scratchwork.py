@@ -2,7 +2,7 @@ from project_classes import *
 from functions import *
 from iceflow_library import *
 
-"""Cell Break in dev.ipynb"""
+"""Cell Break in doit.ipynb"""
 
 zoom = True
 seg_length = 100
@@ -17,12 +17,12 @@ flight = "20161024_05"
 file_name = "layer_export_" + flight + ".pickle"
 testing = False
 
-"""Cell Break in dev.ipynb"""
+"""Cell Break in doit.ipynb"""
 
 mat_pickler_layer(season, flight, testing_mode=testing)  # make it
 layers = read_layers(file_name)  # read in the layers from the pickle file
 
-"""Cell Break in dev.ipynb"""
+"""Cell Break in doit.ipynb"""
 
 ### read in the iceflow data from the iceflow data files and save them to a pickle file
 
@@ -42,28 +42,28 @@ velocity_y = iceflow_data[3]
 latitude = iceflow_data[4]
 longitude = iceflow_data[5]
 
-"""Cell Break in dev.ipynb"""
+"""Cell Break in doit.ipynb"""
 
 intersection_points_base, intersection_indices_base, segment_ends = cross_point(layers[0], seg_length, quiet=True)
 # find the crossover points
 print(f"len(intersection_indices): {len(intersection_indices_base)}")
 print(f"len(intersection_points): {len(intersection_points_base)}")
 
-"""Cell Break in dev.ipynb"""
+"""Cell Break in doit.ipynb"""
 
 plot_layers_at_cross(layers[0], intersection_indices_base, segment_ends, zoom=zoom)
 
 
-"""Cell Break in dev.ipynb"""
+"""Cell Break in doit.ipynb"""
 
 
 
-"""Cell Break in dev.ipynb"""
+"""Cell Break in doit.ipynb"""
 
 
 
-"""Cell Break in dev.ipynb"""
+"""Cell Break in doit.ipynb"""
 
 
 
-"""Cell Break in dev.ipynb"""
+"""Cell Break in doit.ipynb"""
