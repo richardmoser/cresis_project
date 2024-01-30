@@ -4,7 +4,7 @@ import math
 # import pickle
 # import matplotlib.pyplot as plt
 # from CReSIS_project_classes import Layer
-from CReSIS_project_classes import Twtt_Posit
+from project_classes import Twtt_Posit
 # from mpl_toolkits.basemap import Basemap
 # from shapely.geometry import LineString
 from functions import *

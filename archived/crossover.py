@@ -1,7 +1,7 @@
 import math
-from CReSIS_project_classes import Twtt_Posit
+from project_classes import Twtt_Posit
 from functions import *
-from CReSIS_project_classes import *
+from project_classes import *
 
 zoom = False
 # zoom = True

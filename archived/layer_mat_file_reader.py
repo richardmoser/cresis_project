@@ -3,7 +3,7 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
-from CReSIS_project_classes import Layer
+from project_classes import Layer
 from functions import *
 # import mat73
 
@@ -28,7 +28,7 @@ flight = "20161024_05"
 
 
 def main():
-    mat_pickler(season, flight)
+    mat_pickler_layerData(season, flight)
 
 
 # def main():

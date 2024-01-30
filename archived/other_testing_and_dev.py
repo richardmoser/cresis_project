@@ -1,6 +1,6 @@
 import math
 import datetime
-from CReSIS_project_classes import Twtt_Posit
+from project_classes import Twtt_Posit
 from functions import *
 
 season = "2018_Antarctica_DC8"
