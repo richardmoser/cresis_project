@@ -829,10 +829,10 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
         urcrnrx = 250000
         urcrnry = 250000
     else:
-        llcrnrx= -50000
-        llcrnry= -50000
-        urcrnrx= 50000
-        urcrnry= 50000
+        llcrnrx = -100000
+        llcrnry = -100000
+        urcrnrx = 100000
+        urcrnry = 100000
     lat_0 = intersection_points[cross_index][0]
     lon_0 = intersection_points[cross_index][1]
     m = Basemap(projection='ortho', lat_0=lat_0, lon_0=lon_0, llcrnrx=llcrnrx,
@@ -865,7 +865,7 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
         m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[
             1], '\nsegment 2', fontsize='smaller', fontweight='bold', ha='left', va='top', color='green')
     # plot the South Pole
-    m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
+    # m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
     # plot the crossover points
     for point in intersection_points:
         m.scatter(point[1], point[0], latlon=True, color='darkred', linewidth=1, label='Crossover Point')
@@ -882,18 +882,19 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     # plot the crossover line
 
     x, y = m(0, -90)
-    plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
+    # plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
     plt.title("Lat-Lon Map")
     # set tight layout
     # plt.tight_layout()
 
     # save the plot
-    plt.savefig("layer_plot.png", dpi=250)
+    # plt.savefig("layer_plot.png", dpi=250)
 
     plt.show()
 
     print("plotted map")
     print("--------------------\n")
+
 
 
 def fancymap(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77,

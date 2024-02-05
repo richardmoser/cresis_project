@@ -60,3 +60,4 @@ python dependencies (incomplete list):
     - third index is the y index
       - x and y do not have a third index
     - e.g.
+    - velocity (in x and y) is in meters per year
