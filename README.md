@@ -61,3 +61,12 @@ python dependencies (incomplete list):
       - x and y do not have a third index
     - e.g.
     - velocity (in x and y) is in meters per year
+
+## Things That Need Verification From SME's 
+And by SME I mean probably mostly John
+- The data I am extracting from the layer files is in fact the data I think it is
+- The data I am extracting from the layer files is in the units I think it is
+- The coordinate system conversions are correct
+  - Both to and from EPSG:3031 (Antarctic Polar Stereographic) and EPSG:4326 (WGS84)
+- plane heading is calculated correctly
+- 

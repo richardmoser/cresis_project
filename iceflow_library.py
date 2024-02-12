@@ -126,6 +126,27 @@ def latlon_to_xy(lat, lon):
     return point
 
 
+def xy_vector_to_heading(x, y, x_vector, y_vector):
+    """
+    This function is used to convert an x and y vector in EPSG:3031 to a heading in EPSG:4326.
+    :param x: the x coordinate
+    :param y: the y coordinate
+    :param x_vector: the x vector
+    :param y_vector: the y vector
+    :return: the heading in EPSG:4326
+    """
+    # convert the x and y coordinates to lat and lon
+    lat, lon = xy_to_latlon(x, y)
+    # convert the x and y vector to lat and lon
+    lat_vector, lon_vector = xy_to_latlon(x + x_vector, y + y_vector)
+    # calculate the heading
+    geodesic = pyproj.Geod(ellps='WGS84')
+    angle1,angle2,distance = geodesic.inv(lon, lat, lon_vector, lat_vector)
+    return angle1
+
+
+
+
 def find_nearest_x_and_y(x, y, iceflow_data):
     """
     This function is used to find the nearest x and y value in the iceflow data to an input x and y value.
@@ -207,7 +228,8 @@ def find_nearest_unmasked_x_and_y(x, y, iceflow_data, max_radius=100):
     x_index_base = (np.abs(iceflow_data[0] - x)).argmin()
     y_index_base = (np.abs(iceflow_data[1] - y)).argmin()
 
-    for x_offset, y_offset in generate_spiral_indices(0, 0, max_radius=max_radius):
+    # for x_offset, y_offset in generate_spiral_indices(0, 0, max_radius=max_radius):
+    for x_offset, y_offset in generate_spiral_indices(x_index_base, y_index_base, max_radius=max_radius):
         x_index = x_index_base + x_offset
         y_index = y_index_base + y_offset
 
@@ -223,16 +245,18 @@ def find_nearest_unmasked_x_and_y(x, y, iceflow_data, max_radius=100):
     return x_index_base, y_index_base
 
 
-def nearest_flow_to_latlon(lat, lon, iceflow_data):
+def nearest_flow_to_latlon(lat, lon, iceflow_data, print_point=False):
     """
     :param lat: the latitude of the point
     :param lon: the longitude of the point
     :param iceflow_data: the iceflow data
-    :return: the nearest iceflow data to the lat-lon point
+    :return: the nearest flow vector to the lat-lon point available in the iceflow data
     """
     # find the nearest x and y values in the iceflow data
     x, y = latlon_to_xy(lat, lon)
     x, y = find_nearest_unmasked_x_and_y(x, y, iceflow_data, max_radius=1000)
+    if print_point:
+        print(f"Nearest point to lat-lon: {xy_to_latlon(x, y)}")
     flow = flow_at_x_y(x, y, iceflow_data)
     return flow
 
