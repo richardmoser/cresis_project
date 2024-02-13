@@ -67,43 +67,62 @@ def iceflow_loader(pickle_file_name):
     return iceflow_data
 
 
-def get_iceflow_data():
+def get_iceflow_data(print=True):
     """
     for loading the data into crossover programs and similar
     :return: the data
     """
     try:
         iceflow_data = iceflow_data_file_loader()
-        print("The iceflow data pickle file was found and loaded.")
+        if print:
+            print("The iceflow data pickle file was found and loaded.")
     except FileNotFoundError:
         print("The iceflow data pickle file was not found. Creating a new one...")
         filename = iceflow_saver()
         iceflow_data = iceflow_loader(filename)
         print("The iceflow data pickle file was successfully created.")
 
-    print(f"Iceflow data array layout is 0:x, 1:y, 2:v_x, 3:v_y, 4:latitude, 5:longitude")
+    if print:
+        print(f"Iceflow data array layout is 0:x, 1:y, 2:v_x, 3:v_y, 4:latitude, 5:longitude")
 
     return iceflow_data
 
 
-# TODO: delete this cell once xy<->latlon conversion debugging is complete
-def xy_to_latlon(x, y):
+def to_index(x):
+    return 6223 + int(x/450)
+
+
+def to_index(y):
+    return 6223 - int(y/450)
+
+
+def index_to(x):
+    return (x - 6223) * 450
+
+
+def index_to(y):
+    return (6223 - y) * 450
+
+
+def xy_to_latlon(x, y, iceflow_data=get_iceflow_data(print=False)):
     """
     This function is used to convert x and y coordinates to lat and lon coordinates.
-    :param x: the x coordinate to convert
-    :param y: the y coordinate to convert
+    :param x: NOT THE X INDEX! the x coordinate to convert
+    :param y: NOT THE Y INDEX! the y coordinate to convert
     :return: the lat and lon coordinates
     # TODO: WHY ARE YOU THE WAY YOU ARE???
     """
-    transformer = Transformer.from_crs("EPSG:3031", "EPSG:4326", accuracy=10)
-        # transform Antarctic Polar Stereographic to standard lat-lon
-    point = transformer.transform(x, y, errcheck=True)
-    point = (point[0], 270 - point[1])  # I'm not sure why, but this is necessary to get the correct longitude
-    if point[1] > 360:  # if the longitude is greater than 360, subtract 360
-        point = (point[0], point[1] - 360)
-    elif point[1] > 0: # if the longitude is greater than 0, subtract 360
-        point = (point[0], point[1] - 360)
-    return point
+    return iceflow_data[4][x][y], iceflow_data[5][x][y]
+
+    # transformer = Transformer.from_crs("EPSG:3031", "EPSG:4326", accuracy=10)
+    #     # transform Antarctic Polar Stereographic to standard lat-lon
+    # point = transformer.transform(x, y, errcheck=True)
+    # point = (point[0], 270 - point[1])  # I'm not sure why, but this is necessary to get the correct longitude
+    # if point[1] > 360:  # if the longitude is greater than 360, subtract 360
+    #     point = (point[0], point[1] - 360)
+    # elif point[1] > 0: # if the longitude is greater than 0, subtract 360
+    #     point = (point[0], point[1] - 360)
+    # return point
 
 
 def latlon_to_xy(lat, lon):

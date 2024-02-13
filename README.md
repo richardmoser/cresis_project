@@ -24,6 +24,7 @@ python dependencies (incomplete list):
 ## Lessons Learned
 - if it says that you need to load mat73, you didn't save the layer file in the OPR tools.
 - using a WSL python configuration will break the paths that depend on C: as the root directory
+- the iceflow x and y data indices are not in meters, each one is 450m apart
 
 ## Data Structure Notes
 - segment_ends: List (nesting level = 4)

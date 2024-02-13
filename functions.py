@@ -309,6 +309,25 @@ def layerize(data_mat, attribute_mat):
     return layers
 
 
+def read_layers(file_name):
+    """
+    :param file_name: the name of the pickle file containing the layers, e.g. "layer_export_20181030_01.pickle"
+    :return: a list of Layer objects from the pickle file (usually Surface, your custom layer(s), and Bottom)
+    """
+    print("Reading pickle file...")
+    print("--------------------")
+    # read layers.pickle into a list of Layer objects
+
+    # file_name = 'layers.pickle'
+
+    with open(file_name, 'rb') as f:
+        layers = pickle.load(f)
+    for layer in layers:
+        print(layer.layer_name)
+    print(section_break)
+    return layers
+
+
 def s_to_ms(x, pos):
     """
     :param x: the x value
@@ -407,25 +426,6 @@ def average_slope_around_index(layer, index, window_size=100):
     # print(f"run: {run}m")
     slope = rise / run
     return slope
-
-
-def read_layers(file_name):
-    """
-    :param file_name: the name of the pickle file containing the layers, e.g. "layer_export_20181030_01.pickle"
-    :return: a list of Layer objects from the pickle file (usually Surface, your custom layer(s), and Bottom)
-    """
-    print("Reading pickle file...")
-    print("--------------------")
-    # read layers.pickle into a list of Layer objects
-
-    # file_name = 'layers.pickle'
-
-    with open(file_name, 'rb') as f:
-        layers = pickle.load(f)
-    for layer in layers:
-        print(layer.layer_name)
-    print(section_break)
-    return layers
 
 
 def twtt_to_depth(twtt, refractive_index):
