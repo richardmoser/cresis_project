@@ -88,19 +88,19 @@ def get_iceflow_data(print=True):
     return iceflow_data
 
 
-def to_index(x):
+def x_to_index(x):
     return 6223 + int(x/450)
 
 
-def to_index(y):
+def y_to_index(y):
     return 6223 - int(y/450)
 
 
-def index_to(x):
+def index_to_x(x):
     return (x - 6223) * 450
 
 
-def index_to(y):
+def index_to_y(y):
     return (6223 - y) * 450
 
 
