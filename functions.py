@@ -496,12 +496,24 @@ def find_heading(layer, index, window_size=100):
     :return: the bearing of the current that flew through the points.
     This has nothing to do with the slope of the layer. only the lat-lon points.
     """
+    # print the lat-lon points
+    print(f"lat-lon input to find_heading:"
+          f"\n({layer.lat[index]}, {layer.lon[index]})")
     geodesic = pyproj.Geod(ellps='WGS84')
+    lon = layer.lon[index]
+    lat = layer.lat[index]
     lon1 = layer.lon[index - window_size]
     lat1 = layer.lat[index - window_size]
     lon2 = layer.lon[index + window_size]
     lat2 = layer.lat[index + window_size]
 
+    print(f"lat-lons determined by find_heading:"
+          f"\n({lat1}, {lon1}), ({lat2}, {lon2})")
+    delta_lon1 = lon - lon1
+    delta_lat1 = lat - lat1
+    delta_lon2 = lon2 - lon
+    delta_lat2 = lat2 - lat
+    print(f"delta_lon1: {delta_lon1}, delta_lat1: {delta_lat1}, delta_lon2: {delta_lon2}, delta_lat2: {delta_lat2}")
     fwd_azimuth, back_azimuth, distance = geodesic.inv(lon1, lat1, lon2, lat2)
     return fwd_azimuth
 

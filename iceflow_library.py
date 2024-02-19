@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from netCDF4 import Dataset
 from pyproj import Transformer
 import pickle
+import pyproj
 
 
 def iceflow_data_file_loader():
@@ -67,14 +68,14 @@ def iceflow_loader(pickle_file_name):
     return iceflow_data
 
 
-def get_iceflow_data(print=True):
+def get_iceflow_data(printout=True):
     """
     for loading the data into crossover programs and similar
     :return: the data
     """
     try:
         iceflow_data = iceflow_data_file_loader()
-        if print:
+        if printout:
             print("The iceflow data pickle file was found and loaded.")
     except FileNotFoundError:
         print("The iceflow data pickle file was not found. Creating a new one...")
@@ -82,8 +83,8 @@ def get_iceflow_data(print=True):
         iceflow_data = iceflow_loader(filename)
         print("The iceflow data pickle file was successfully created.")
 
-    if print:
-        print(f"Iceflow data array layout is 0:x, 1:y, 2:v_x, 3:v_y, 4:latitude, 5:longitude")
+    if printout:
+        print("Iceflow data array layout is 0:x, 1:y, 2:v_x, 3:v_y, 4:latitude, 5:longitude")
 
     return iceflow_data
 
@@ -104,11 +105,12 @@ def index_to_y(y):
     return (6223 - y) * 450
 
 
-def xy_to_latlon(x, y, iceflow_data=get_iceflow_data(print=False)):
+def xy_to_latlon(x, y, iceflow_data=get_iceflow_data(printout=False)):
     """
     This function is used to convert x and y coordinates to lat and lon coordinates.
     :param x: NOT THE X INDEX! the x coordinate to convert
     :param y: NOT THE Y INDEX! the y coordinate to convert
+    :param iceflow_data: the iceflow data in a readable format
     :return: the lat and lon coordinates
     # TODO: WHY ARE YOU THE WAY YOU ARE???
     """
@@ -134,13 +136,13 @@ def latlon_to_xy(lat, lon):
     # TODO: WHY ARE YOU THE WAY YOU ARE???
     """
     transformer = Transformer.from_crs("EPSG:4326", "EPSG:3031", accuracy=10)
-        # transform standard lat-lon to Antarctic Polar Stereographic
+    # transform standard lat-lon to Antarctic Polar Stereographic
     # point = transformer.transform(lat, lon, errcheck=True)
     point = transformer.transform(lat, lon, errcheck=True)
     # print(point)
     point = (- int(point[1]), - int(point[0]))
-        # ok this one you *REALLY* can't ask me why it is like this. If you don't do this, the lat and lon are flipped and
-        # negative relative to the actual values. I don't like it either.
+    # ok this one you *REALLY* can't ask me why it is like this. If you don't do this, the lat and lon are flipped and
+    # negative relative to the actual values. I don't like it either.
     # print(f"lat-lon: {lat, lon}\nx-y: {point}")
     return point
 
@@ -154,16 +156,14 @@ def xy_vector_to_heading(x, y, x_vector, y_vector):
     :param y_vector: the y vector
     :return: the heading in EPSG:4326
     """
-    # convert the x and y coordinates to lat and lon
+    # convert the x and y coordinates to lat and lo
     lat, lon = xy_to_latlon(x, y)
     # convert the x and y vector to lat and lon
     lat_vector, lon_vector = xy_to_latlon(x + x_vector, y + y_vector)
     # calculate the heading
     geodesic = pyproj.Geod(ellps='WGS84')
-    angle1,angle2,distance = geodesic.inv(lon, lat, lon_vector, lat_vector)
-    return angle1
-
-
+    angle1, angle2, distance = geodesic.inv(lon, lat, lon_vector, lat_vector)
+    return angle1, angle2, distance
 
 
 def find_nearest_x_and_y(x, y, iceflow_data):
@@ -236,7 +236,6 @@ def generate_spiral_indices(center_x, center_y, max_radius):
         x -= 1
         y -= 1
         yield x, y
-        
 
 
 def find_nearest_unmasked_x_and_y(x, y, iceflow_data, max_radius=100):
@@ -269,6 +268,7 @@ def nearest_flow_to_latlon(lat, lon, iceflow_data, print_point=False):
     :param lat: the latitude of the point
     :param lon: the longitude of the point
     :param iceflow_data: the iceflow data
+    :param print_point: whether or not to print the nearest point to the lat-lon point
     :return: the nearest flow vector to the lat-lon point available in the iceflow data
     """
     # find the nearest x and y values in the iceflow data
@@ -282,7 +282,8 @@ def nearest_flow_to_latlon(lat, lon, iceflow_data, print_point=False):
 
 def plot_spiral(x_center, y_center, max_radius=4):
     """
-    use the generate_spiral_indices function to make a list of all the points in a spiral around a point within a radius of 100 around the center of the x and y values
+    use the generate_spiral_indices function to make a list of all the points in a spiral around a point within a
+    radius of max_radius around the center point
     :param x_center: the center x value
     :param y_center: the center y value
     :param max_radius: the maximum radius of the spiral
@@ -291,7 +292,8 @@ def plot_spiral(x_center, y_center, max_radius=4):
     spiral_indices = []
     for x_offset, y_offset in generate_spiral_indices(x_center, y_center, max_radius=max_radius):
         spiral_indices.append((x_offset, y_offset))
-    # draw the spiral on a plot of x and y values with a line connecting the points and color the points by their index in the list
+    # draw the spiral on a plot of x and y values with a line connecting the points and color the points by their
+    # index in the list
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(1, 1, 1)
     ax.set_title('Spiral')
