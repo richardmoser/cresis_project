@@ -11,6 +11,7 @@ from netCDF4 import Dataset
 from pyproj import Transformer
 import pickle
 import pyproj
+import math
 
 
 def iceflow_data_file_loader():
@@ -69,7 +70,7 @@ def iceflow_loader(pickle_file_name):
 
 
 def get_iceflow_data(printout=True):
-    """
+    """/
     for loading the data into crossover programs and similar
     :return: the data
     """
@@ -105,7 +106,9 @@ def index_to_y(y):
     return (6223 - y) * 450
 
 
-def xy_to_latlon(x, y, iceflow_data=get_iceflow_data(printout=False)):
+def xyindex_to_latlon(x, y, iceflow_data=get_iceflow_data(printout=False)):
+    # TODO: make sure this uses the appropriate xy or x_index and y_index system
+        # I think it is using indices and not points contrary to the description
     """
     This function is used to convert x and y coordinates to lat and lon coordinates.
     :param x: NOT THE X INDEX! the x coordinate to convert
@@ -114,17 +117,18 @@ def xy_to_latlon(x, y, iceflow_data=get_iceflow_data(printout=False)):
     :return: the lat and lon coordinates
     # TODO: WHY ARE YOU THE WAY YOU ARE???
     """
-    return iceflow_data[4][x][y], iceflow_data[5][x][y]
+    # return iceflow_data[4][x][y], iceflow_data[5][x][y] # I don't remember why I added this.
+        # It was uncommented and everything else was commented out. Started working once I switched it back
 
-    # transformer = Transformer.from_crs("EPSG:3031", "EPSG:4326", accuracy=10)
-    #     # transform Antarctic Polar Stereographic to standard lat-lon
-    # point = transformer.transform(x, y, errcheck=True)
-    # point = (point[0], 270 - point[1])  # I'm not sure why, but this is necessary to get the correct longitude
-    # if point[1] > 360:  # if the longitude is greater than 360, subtract 360
-    #     point = (point[0], point[1] - 360)
-    # elif point[1] > 0: # if the longitude is greater than 0, subtract 360
-    #     point = (point[0], point[1] - 360)
-    # return point
+    transformer = Transformer.from_crs("EPSG:3031", "EPSG:4326", accuracy=10)
+        # transform Antarctic Polar Stereographic to standard lat-lon
+    point = transformer.transform(x, y, errcheck=True)
+    point = (point[0], 270 - point[1])  # I'm not sure why, but this is necessary to get the correct longitude
+    if point[1] > 360:  # if the longitude is greater than 360, subtract 360
+        point = (point[0], point[1] - 360)
+    elif point[1] > 0: # if the longitude is greater than 0, subtract 360
+        point = (point[0], point[1] - 360)
+    return point
 
 
 def latlon_to_xy(lat, lon):
@@ -147,19 +151,19 @@ def latlon_to_xy(lat, lon):
     return point
 
 
-def xy_vector_to_heading(x, y, x_vector, y_vector):
+def xyindex_vector_to_heading(x_index, y_index, x_vector, y_vector):
     """
     This function is used to convert an x and y vector in EPSG:3031 to a heading in EPSG:4326.
-    :param x: the x coordinate
-    :param y: the y coordinate
+    :param x_index: the x coordinate
+    :param y_index: the y coordinate
     :param x_vector: the x vector
     :param y_vector: the y vector
     :return: the heading in EPSG:4326
     """
-    # convert the x and y coordinates to lat and lo
-    lat, lon = xy_to_latlon(x, y)
+    # convert the x and y coordinates to lat and lon
+    lat, lon = xyindex_to_latlon(x_index, y_index)
     # convert the x and y vector to lat and lon
-    lat_vector, lon_vector = xy_to_latlon(x + x_vector, y + y_vector)
+    lat_vector, lon_vector = xyindex_to_latlon(x_index + x_vector, y_index + y_vector)
     # calculate the heading
     geodesic = pyproj.Geod(ellps='WGS84')
     angle1, angle2, distance = geodesic.inv(lon, lat, lon_vector, lat_vector)
@@ -167,6 +171,7 @@ def xy_vector_to_heading(x, y, x_vector, y_vector):
 
 
 def find_nearest_x_and_y(x, y, iceflow_data):
+    # TODO: make sure this uses the appropriate xy or x_index and y_index system
     """
     This function is used to find the nearest x and y value in the iceflow data to an input x and y value.
     :param x: the x value to find the nearest x value to
@@ -181,7 +186,7 @@ def find_nearest_x_and_y(x, y, iceflow_data):
 
 
 def flow_at_lat_lon(lat, lon, iceflow_data):
-    # TODO: make this incorporate the find_nearest_x_and_y function and the find_nearest_unmasked_x_and_y function
+    # TODO: make this incorporate the find_nearest_x_and_y function and the depracated_find_nearest_unmasked_x_and_y function
     """
     This function is used to find the flow at a given lat and lon.
     :param lat: the latitude to find the flow at
@@ -204,8 +209,8 @@ def flow_at_x_y(x, y, iceflow_data):
     :param iceflow_data: the iceflow data in a readable format
     :return: the flow at a given x and y
     """
-    x_index, y_index = find_nearest_unmasked_x_and_y(x, y, iceflow_data)
-    return iceflow_data[2][x_index][y_index], iceflow_data[3][x_index][y_index]
+    # x_index, y_index = depracated_find_nearest_unmasked_x_and_y(x, y, iceflow_data)
+    return iceflow_data[2][x][y], iceflow_data[3][x][y]
 
 
 def generate_spiral_indices(center_x, center_y, max_radius):
@@ -238,16 +243,67 @@ def generate_spiral_indices(center_x, center_y, max_radius):
         yield x, y
 
 
-def find_nearest_unmasked_x_and_y(x, y, iceflow_data, max_radius=100):
+def xy_to_nearest_unmasked_index(x, y, iceflow_data, max_radius=10, printout=False):
+    """
+    Find the nearest x and y value in the iceflow data to an input x and y value.
+    :param x: the x value to find the nearest x value to
+    :param y: the y value to find the nearest y value to
+    :param iceflow_data: the iceflow data
+    :param max_radius: the maximum radius to search for an unmasked point
+    :param printout: whether or not to print the nearest unmasked point
+    :return: the nearest unmasked x and y value in the iceflow data to an input x and y value
+    """
+    x = x_to_index(x)
+    y = y_to_index(y)
+    unmasked = []
+    for x_iterator in range(x - max_radius, x + max_radius):
+        for y_iterator in range(y - max_radius, y + max_radius):
+            if (
+                    0 <= x_iterator < iceflow_data[2].shape[
+                0]  # if the x index is within the bounds of the iceflow data
+                    and 0 <= y_iterator < iceflow_data[2].shape[1]
+                    and not np.ma.is_masked(iceflow_data[2][x_iterator][y_iterator])
+                    and not np.ma.is_masked(iceflow_data[3][x_iterator][y_iterator])
+            ):
+                unmasked.append((x_iterator, y_iterator))
+            if printout and not np.ma.is_masked(iceflow_data[2][x_iterator][y_iterator]):
+                print(f"unmasked x: {x_iterator}, unmasked y: {y_iterator}")
+                print(
+                    f"unmasked lat: {iceflow_data[4][x_iterator][y_iterator]}, unmasked lon: {iceflow_data[5][x_iterator][y_iterator]}")
+                print(
+                    f"unmasked flow: {iceflow_data[2][x_iterator][y_iterator]}, {iceflow_data[3][x_iterator][y_iterator]}")
+    # find the xy pair with the minimum distance from the input x and y
+    min_distance = 100
+    min_x = None
+    min_y = None
+    for x_iterator, y_iterator in unmasked:
+        distance = math.sqrt((x - x_iterator) ** 2 + (y - y_iterator) ** 2)
+        if distance < min_distance:
+            min_distance = distance
+            min_x = x_iterator
+            min_y = y_iterator
+    # TODO: figure out why these are indices and not x and y
+    # it works fine, they just are.
+    return min_x, min_y
+
+
+def depracated_find_nearest_unmasked_x_and_y(x, y, iceflow_data, max_radius=100):
+    #TODO: fix this because it doesn't seem to be returning good data
+        # or abandon it because xy_to_nearest_unmasked_index() seems to work
     """
     Find the nearest x and y value in the iceflow data to an input x and y value.
     If the ice velocity is masked at that point, it will return the next nearest point that is not masked.
     """
-    x_index_base = (np.abs(iceflow_data[0] - x)).argmin()
-    y_index_base = (np.abs(iceflow_data[1] - y)).argmin()
 
-    # for x_offset, y_offset in generate_spiral_indices(0, 0, max_radius=max_radius):
-    for x_offset, y_offset in generate_spiral_indices(x_index_base, y_index_base, max_radius=max_radius):
+    # x_index_base = (np.abs(iceflow_data[0] - x)).argmin()
+    # y_index_base = (np.abs(iceflow_data[1] - y)).argmin()
+    x_index = x_to_index(x)
+    y_index = y_to_index(y)
+    x_index_base = (np.abs(iceflow_data[0] - x_index)).argmin()
+    y_index_base = (np.abs(iceflow_data[1] - y_index)).argmin()
+
+    for x_offset, y_offset in generate_spiral_indices(0, 0, max_radius=max_radius):
+    # for x_offset, y_offset in generate_spiral_indices(x_index_base, y_index_base, max_radius=max_radius):
         x_index = x_index_base + x_offset
         y_index = y_index_base + y_offset
 
@@ -271,11 +327,13 @@ def nearest_flow_to_latlon(lat, lon, iceflow_data, print_point=False):
     :param print_point: whether or not to print the nearest point to the lat-lon point
     :return: the nearest flow vector to the lat-lon point available in the iceflow data
     """
+    # TODO: update to use the xy_to_nearest_unmasked_index function
     # find the nearest x and y values in the iceflow data
     x, y = latlon_to_xy(lat, lon)
-    x, y = find_nearest_unmasked_x_and_y(x, y, iceflow_data, max_radius=1000)
+    # x, y = depracated_find_nearest_unmasked_x_and_y(x, y, iceflow_data, max_radius=1000)
+    x_index, y_index = xy_to_nearest_unmasked_index(x, y, iceflow_data, max_radius=1000)
     if print_point:
-        print(f"Nearest point to lat-lon: {xy_to_latlon(x, y)}")
+        print(f"Nearest point to lat-lon: {xyindex_to_latlon(x_index, y_index)}")
     flow = flow_at_x_y(x, y, iceflow_data)
     return flow
 

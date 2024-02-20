@@ -241,7 +241,7 @@ def layerize(data_mat, attribute_mat):
     :param attribute_mat: a mat file containing the attributes of each layer
     :return: a list of Layer objects
     """
-    print("debug:")
+    # print("debug:")
     print(f"data_mat type: {type(data_mat[0])}")
     # list keys in data_mat[0]
     keys = [str(key).strip("_") for key in data_mat[0].keys()]
@@ -253,10 +253,10 @@ def layerize(data_mat, attribute_mat):
             print(",", end=" ")
     # print the twtt array in data_mat[0]
     # print(f"\n\ntwtt shape: {data_mat[0]['twtt'].shape}")
-    print(f"twtt: {data_mat[0]['twtt']}")
-    print(f"twtt[0]: {data_mat[0]['twtt'][0]}")
-    print(f"twtt[0][0]: {data_mat[0]['twtt'][0][0]}")
-    print(f"twtt[0][1]: {data_mat[0]['twtt'][0][1]}")
+    # print(f"twtt: {data_mat[0]['twtt']}")
+    # print(f"twtt[0]: {data_mat[0]['twtt'][0]}")
+    # print(f"twtt[0][0]: {data_mat[0]['twtt'][0][0]}")
+    # print(f"twtt[0][1]: {data_mat[0]['twtt'][0][1]}")
 
     layers = []
     # iterate through each mat file
@@ -497,8 +497,8 @@ def find_heading(layer, index, window_size=100):
     This has nothing to do with the slope of the layer. only the lat-lon points.
     """
     # print the lat-lon points
-    print(f"lat-lon input to find_heading:"
-          f"\n({layer.lat[index]}, {layer.lon[index]})")
+    # print(f"lat-lon input to find_heading:"
+    #       f"\n({layer.lat[index]}, {layer.lon[index]})")
     geodesic = pyproj.Geod(ellps='WGS84')
     lon = layer.lon[index]
     lat = layer.lat[index]
@@ -507,13 +507,13 @@ def find_heading(layer, index, window_size=100):
     lon2 = layer.lon[index + window_size]
     lat2 = layer.lat[index + window_size]
 
-    print(f"lat-lons determined by find_heading:"
-          f"\n({lat1}, {lon1}), ({lat2}, {lon2})")
+    # print(f"lat-lons determined by find_heading:"
+    #       f"\n({lat1}, {lon1}), ({lat2}, {lon2})")
     delta_lon1 = lon - lon1
     delta_lat1 = lat - lat1
     delta_lon2 = lon2 - lon
     delta_lat2 = lat2 - lat
-    print(f"delta_lon1: {delta_lon1}, delta_lat1: {delta_lat1}, delta_lon2: {delta_lon2}, delta_lat2: {delta_lat2}")
+    # print(f"delta_lon1: {delta_lon1}, delta_lat1: {delta_lat1}, delta_lon2: {delta_lon2}, delta_lat2: {delta_lat2}")
     fwd_azimuth, back_azimuth, distance = geodesic.inv(lon1, lat1, lon2, lat2)
     return fwd_azimuth
 
@@ -729,8 +729,7 @@ def twtt_at_point(read_layer, surface_layer, indices, corrected=True, quiet=Fals
     return twtt
 
 
-def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77,
-                         cross_index=0):
+def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77, cross_index=0):
     """
     :param layers: a list of Layer objects
     :param intersection_indices: a list of indices in the lat-lon arrays where the flight path
@@ -738,13 +737,14 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     :param intersection_points: a list of lat-lon points where the flight path crosses over itself
     :return: nothing (plots the layers and the map)
     """
-    plt.figure(figsize=(24, 12), layout='constrained')
+    plt.figure(figsize=(16, 8), layout='constrained')
     print("Plotting layers and map...")
     print("--------------------")
     print("Adjusting for surface twtt...")
     for layer in layers:
         corrected_layer = layer.twtt - layers[0].twtt
         layer.twtt_corrected = corrected_layer
+
 
     # ax2 will be the layer plot
     plt.subplot(1, 2, 1)
@@ -847,6 +847,7 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
         urcrnry = 100000
     lat_0 = intersection_points[cross_index][0]
     lon_0 = intersection_points[cross_index][1]
+    print(f"debug: lat_0: {lat_0}, lon_0: {lon_0}")
     m = Basemap(projection='ortho', lat_0=lat_0, lon_0=lon_0, llcrnrx=llcrnrx,
                 llcrnry=llcrnry, urcrnrx=urcrnrx, urcrnry=urcrnry, resolution='c')
 
@@ -907,6 +908,186 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     print("plotted map")
     print("--------------------\n")
 
+
+
+# def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77,
+#                          cross_index=0):
+#     """
+#     :param layers: a list of Layer objects
+#     :param intersection_indices: a list of indices in the lat-lon arrays where the flight path
+#     crosses over itself
+#     :param intersection_points: a list of lat-lon points where the flight path crosses over itself
+#     :return: nothing (plots the layers and the map)
+#     """
+#     plt.figure(figsize=(24, 12), layout='constrained')
+#     print("Plotting layers and map...")
+#     print("--------------------")
+#     print("Adjusting for surface twtt...")
+#     for layer in layers:
+#         corrected_layer = layer.twtt - layers[0].twtt
+#         layer.twtt_corrected = corrected_layer
+#
+#     # ax2 will be the layer plot
+#     plt.subplot(1, 2, 1)
+#
+#     # plot the layer depths vs index for 500 points before and after the first
+#     # crossover point for each layer.
+#     # also plot the layer depths vs index for 500 points before and after the
+#     # second crossover point for each layer.
+#     offset = 500
+#     # plot the corrected twtt for each layer
+#     plt.plot(
+#         layers[0].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[cross_index][0] + offset],
+#         label=layers[0].layer_name)
+#     plt.plot(
+#         layers[1].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[cross_index][0] + offset],
+#         label=layers[1].layer_name + ' segment 1')
+#     plt.plot(
+#         layers[1].twtt_corrected[intersection_indices[0][1] - offset:intersection_indices[cross_index][1] + offset],
+#         label=layers[1].layer_name + ' segment 2')
+#
+#     # plot uncorrected twtt for each layer
+#     # plt.plot(layers[0].twtt[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+#     #             label=layers[0].layer_name)
+#     # plt.plot(layers[1].twtt[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+#     #             label=layers[1].layer_name + ' segment 1')
+#     # plt.plot(layers[1].twtt[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
+#     # label=layers[1].layer_name + ' segment 2')
+#
+#     # invert the y-axis because the twtt increases with depth
+#     plt.gca().invert_yaxis()
+#     # plot the crossover point on the plot
+#     plt.scatter(offset, twtt_at_point(layers[1], layers[0],
+#                                       intersection_indices, quiet=True)[0][0], color='red',
+#                 label='X Point 1')
+#     plt.scatter(offset, twtt_at_point(layers[1], layers[0],
+#                                       intersection_indices, quiet=True)[0][1], color='green',
+#                 label='X Point 2')
+#     # plot a line at the crossover point
+#     plt.axvline(x=offset, color='black', label='X Point', linestyle='--', linewidth=0.3)
+#
+#     # set the y axis to be in nanoseconds instead of seconds
+#     plt.ylabel("Adjusted Two Way Travel Time (ns)")
+#     plt.xlabel("Index")
+#
+#     # force the y values to be displayed in 1e-6 ticks (microseconds) instead of 1e-5 ticks (tens of microseconds)
+#     plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0), useMathText=True)
+#
+#     def s_to_ms(x, pos):
+#         """
+#         :param x: the x value
+#         :param pos: the position
+#         :return: the x value in milliseconds
+#         """
+#         return '%1.1f' % (x * 1e6)
+#
+#     # set the y axis to be in microseconds instead of seconds
+#     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(s_to_ms))
+#
+#     # make the right side y axis show the depth in meters by converting the twtt to depth using the refractive index
+#     min_y, max_y = plt.ylim()
+#     n = refractive_index
+#     c = 299792458  # m/s
+#     v = c / n
+#     # depth = twtt * v / 2
+#     scale_factor = v / 2
+#     print(f"scale factor: {scale_factor}")
+#     plt.twinx()
+#     plt.ylim(min_y * scale_factor, max_y * scale_factor)
+#     plt.ylabel("Depth (m)")
+#
+#     # make the top of the x axis be the distance in meters by converting the lat-lon to distance using the haversine formula
+#     min_x, max_x = plt.xlim()
+#     scale_factor = latlon_dist((layers[0].lat[0], layers[0].lon[0]), (layers[0].lat[1], layers[0].lon[1]))
+#     print(f"scale factor: {scale_factor}")
+#     plt.twiny()
+#     plt.xlim(min_x * scale_factor, max_x * scale_factor)
+#     plt.xlabel("Distance (m)")
+#
+#     plt.title("Adjusted Two Way Travel Time vs Index")
+#     plt.legend(["legend"], fontsize='smaller', loc='upper right', bbox_to_anchor=(1.1, 1.1))
+#
+#     """
+#     plot the map
+#     """
+#     plt.subplot(1, 2, 2)
+#
+#     # TODO: add an offset to the zoom settings so that the crossover point is in the center of the zoomed in map
+#
+#     # # this code sets up a polar stereographic map of antarctica with the South Pole in the center
+#     zoom_out_to_continent = not zoom
+#     if zoom_out_to_continent:
+#         llcrnrx = -400000
+#         llcrnry = -400000
+#         urcrnrx = 250000
+#         urcrnry = 250000
+#     else:
+#         llcrnrx = -100000
+#         llcrnry = -100000
+#         urcrnrx = 100000
+#         urcrnry = 100000
+#     # lat_0 = intersection_points[cross_index][0]
+#     # lon_0 = intersection_points[cross_index][1]
+#     m = Basemap(projection='ortho', lat_0=lat_0, lon_0=lon_0, llcrnrx=llcrnrx,
+#                 llcrnry=llcrnry, urcrnrx=urcrnrx, urcrnry=urcrnry, resolution='c')
+#
+#     m.drawcoastlines()
+#     m.fillcontinents(color='grey', lake_color='aqua')
+#     m.drawparallels(np.arange(-80., 81., 20.))
+#     m.drawmeridians(np.arange(-180., 181., 20.))
+#     m.drawmapboundary(fill_color='aqua')
+#
+#     # plot the flight path
+#     m.plot(layers[0].lon, layers[0].lat, latlon=True, color='lightgreen', linewidth=1)
+#     # plot the section of the flight path in the plot above
+#     m.plot(layers[0].lon[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+#            layers[0].lat[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset], latlon=True,
+#            color='red', linewidth=1)
+#     m.plot(layers[0].lon[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
+#            layers[0].lat[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset], latlon=True,
+#            color='green', linewidth=1)
+#     # plot labels for the flight paths at their start points
+#     plt.text(
+#         m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[
+#             0],
+#         m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[
+#             1], '\nsegment 1', fontsize='smaller', fontweight='bold', ha='right', va='top', color='red')
+#     plt.text(
+#         m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[
+#             0],
+#         m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[
+#             1], '\nsegment 2', fontsize='smaller', fontweight='bold', ha='left', va='top', color='green')
+#     # plot the South Pole
+#     # m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
+#     # plot the crossover points
+#     for point in intersection_points:
+#         m.scatter(point[1], point[0], latlon=True, color='darkred', linewidth=1, label='Crossover Point')
+#         plt.text(m(point[1], point[0])[0], m(point[1], point[0])[1] - 10000, 'Crossover Point\n\n',
+#                  fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
+#
+#     # m.scatter(intersection_points[cross_index][1], intersection_points[cross_index][0], latlon=True, color='darkred',
+#     #           linewidth=1, label='Crossover Point')
+#     # plt.text(m(intersection_points[cross_index][1], intersection_points[cross_index][0])[0],
+#     #          m(intersection_points[cross_index][1], intersection_points[cross_index][0])[1] - 10000,
+#     #          'Crossover Point\n\n',
+#     #          fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
+#
+#     # plot the crossover line
+#
+#     x, y = m(0, -90)
+#     # plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
+#     plt.title("Lat-Lon Map")
+#     # set tight layout
+#     # plt.tight_layout()
+#
+#     # save the plot
+#     # plt.savefig("layer_plot.png", dpi=250)
+#
+#     plt.show()
+#
+#     print("plotted map")
+#     print("--------------------\n")
+#
 
 
 def fancymap(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77,
