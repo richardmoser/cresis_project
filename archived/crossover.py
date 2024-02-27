@@ -2,6 +2,7 @@ import math
 from project_classes import Twtt_Posit
 from functions import *
 from project_classes import *
+import from sys import argv as args
 
 zoom = False
 # zoom = True
@@ -13,6 +14,8 @@ flight = "20181030_01"  # the flight date and frame number
 # flight = "20181112_02"
 # flight = "20161024_05"
 file_name = "layer_export_" + flight + ".pickle"
+
+
 
 # TODO: make map plotter center on crossover point n. default to centering on the first crossover point if no n is given
 # TODO: choose a crossover point or save the data for them or something. Do we already do this? Probably. Very tired.
