@@ -573,7 +573,6 @@ def find_segment_intersection(segment1, segment2):
     return None
 
 
-
 def cross_point(layer, seg_length, quiet=False):
     """
     :param seg_length:
@@ -729,7 +728,7 @@ def twtt_at_point(read_layer, surface_layer, indices, corrected=True, quiet=Fals
     return twtt
 
 
-def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77, cross_index=0):
+def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77, cross_index=0, filename=None):
     """
     :param layers: a list of Layer objects
     :param intersection_indices: a list of indices in the lat-lon arrays where the flight path
@@ -901,7 +900,8 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     # plt.tight_layout()
 
     # save the plot
-    # plt.savefig("layer_plot.png", dpi=250)
+    if filename:
+        plt.savefig(f"{filename}.png", dpi=250)
 
     plt.show()
 
