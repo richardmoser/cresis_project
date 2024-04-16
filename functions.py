@@ -243,45 +243,17 @@ def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=Tr
 def mat_pickler_h5py(season, flight, testing_mode=False, readout=False, save=True, plot_layer=False):
     print("Reading data files...")
     print("--------------------")
-    segment_data_file = 'Data_' + flight + '_'
-    layer_attributes_file = 'layer_' + flight + '.mat'
-
     # set the directory, segment data file, layer attributes file, and start and end frames
     if testing_mode:
         # the dir is the current directory + the test_data folder
         dir = os.getcwd() + '\\test_data\\' + flight + '\\'
-
-            # dir = ('test_data') + '\\'
-            # contains all of the actual data such as twtt, lat, lon, etc.
-            # contains the attributes of the layer such as name, param, etc.
     else:
         # TODO: refactor this into a try except block, maybe upstream of this function where it is called
         dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
-        #     # leaving because it might actually be good. the below line works for 2018_Antarctica_DC8 at least as it
-        #     # has the CSARP_layerData folder instead of CSARP_layer.
 
-        # contains all of the actual data such as twtt, lat, lon, etc.
-        # contains the attributes of the layer such as name, param, etc.
-        print(f"layer_attributes_file: {layer_attributes_file}")
-    # contains the attributes of the layer such as name, param, etc.
-
-    # dir = C:\Users\rj\Documents\cresis\rds\2018_Antarctica_DC8\CSARP_layer\20181112_02
-    # dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181112_02\\')
-    # segment_data_file = 'Data_20181112_02_'
-    # layer_attributes_file = 'layer_20181112_02.mat'
-
-    startframe = '001'
-    # endframe = '015'
-    # endframe = the number of files in the directory
-    files = os.listdir(dir)
-    endframe = str(len(files) - 1).zfill(3)
-
-    # load an array of mat files
-    data_mat = []
-    for i in range(int(startframe), int(endframe)+1):
-        f = h5py.File(dir + segment_data_file + str(i).zfill(3) + '.mat', 'r')
-        data_mat.append(f)
-    # data_mat = np.array([sio.loadmat(dir + segment_data_file + str(i).zfill(3) + '.mat')
+    data_file = dir + 'Data_' + flight + '_'
+    attributes_file = dir + 'layer_' + flight
+    layers = layerize_h5py(data_file, attributes_file, dir)
 
     if readout:
         print("--------------------", end="")
@@ -297,7 +269,9 @@ def mat_pickler_h5py(season, flight, testing_mode=False, readout=False, save=Tru
         print("--------------------")
         # list current directory
         # print(f"Current directory: {}")
-        file_name = "layer_export" + layer_attributes_file[5:-4] + ".pickle"
+        directory = os.getcwd() + "\\pickle_jar\\"
+        # file_name = directory + "layer_export" + attributes_file[5:-4] + ".pickle"
+        file_name = directory + "layer_export_" + flight + ".pickle"
         pickle.dump(layers, open(file_name, "wb"))
         print(file_name, " saved in local directory of this python file.")
         print("--------------------\n")
@@ -311,6 +285,8 @@ def mat_pickler_h5py(season, flight, testing_mode=False, readout=False, save=Tru
             plt.plot(layer.gps_time, layer.twtt, label=layer.layer_name)
         plt.xlabel("GPS Time")
         plt.ylabel("Two Way Travel Time (ns)")
+        # invert the y axis so that the plot is right side up
+        plt.gca().invert_yaxis()
         plt.title("Elevation vs GPS Time")
         plt.legend()
 
@@ -389,6 +365,100 @@ def layerize(data_mat, attribute_mat):
         print(f"{layers[i].layer_name} Layer found and created")
 
     print("--------------------\n")
+    return layers
+
+
+def layerize_h5py(data_file, attribute_file, dir):
+    # TODO: add a docstring
+    # TODO: add a portion to pull the layer name out of the attribute file
+    # afai can tell, that is all the attribute file is used for in the original code
+    # create an empty list to store the layers
+    layers = []
+    files = os.listdir(dir)  # list of files in the directory
+    startframe = '001'  # the first file number in the directory
+    endframe = str(len(files) - 1).zfill(3)  # the number of files in the directory
+    attribute_mat = h5py.File(attribute_file + '.mat', 'r')
+
+    decimal1 = attribute_mat[np.array([attribute_mat['lyr_name'][0][0]])[0]]
+    decimal1_name = [decimal1[i][0] for i in range(len(decimal1))]  # a list of unicode values of the characters
+    decimal2 = attribute_mat[np.array([attribute_mat['lyr_name'][1][0]])[0]]
+    decimal2_name = [decimal2[i][0] for i in range(len(decimal2))]  # a list of unicode values of the characters
+    name1 = ''.join(chr(i) for i in decimal1_name)  # convert the unicode values to a string
+    name2 = ''.join(chr(i) for i in decimal2_name)  # convert the unicode values to a string
+
+    layer1_name = name1
+    layer2_name = name2
+
+    f = h5py.File(data_file + str(3).zfill(3) + '.mat', 'r')
+    # print the contents of the 'param' key
+    print(f"f['param']: {f['param']}")
+    print(f"f['param'].keys(): {list(f['param'].keys())}")
+
+    filename = data_file + '001.mat'  # fill the data which doesn't change per point
+    # param = []  # will need some debugging and we probably don't care about it
+    layer1_quality = []
+    layer2_quality = []
+    layer1_type = []
+    layer2_type = []
+
+    layer1_quality.append(f['quality'][0])
+    layer2_quality.append(f['quality'][1])
+    layer1_type.append(f['type'][0])
+    layer2_type.append(f['type'][1])
+
+    # initialize the data that will be loaded from the files
+    gps_time = []
+    layer1_id = []
+    layer2_id = []
+    lat = []
+    lon = []
+    layer1_twtt = []
+    layer2_twtt = []
+
+    # Load data from each file
+    for i in range(int(startframe), int(endframe) + 1):
+        filename = data_file + str(i).zfill(3) + '.mat'
+        with h5py.File(filename, 'r') as f:
+            gps_time.append(f['gps_time'][:])
+            layer1_id.append(f['id'][0])
+            layer2_id.append(f['id'][1])
+            lat.append(f['lat'][:])
+            lon.append(f['lon'][:])
+            # param.append(f['param'])
+            # layer1_quality.append(f['quality'][0])
+            # layer2_quality.append(f['quality'][1])
+
+            # Extract twtt columns directly into layer1_twtt and layer2_twtt
+            twtt_data = f['twtt'][:]
+            layer1_twtt.extend(twtt_data[:, 0])
+            layer2_twtt.extend(twtt_data[:, 1])
+
+    # Convert lists to numpy arrays
+    gps_time = np.concatenate(gps_time)
+    lat = np.concatenate(lat)
+    lon = np.concatenate(lon)
+    # param = np.concatenate(param)
+    layer1_twtt = np.array(layer1_twtt)
+    layer2_twtt = np.array(layer2_twtt)
+
+    # Convert lists to numpy arrays
+    layer1_id = np.array(layer1_id)
+    layer2_id = np.array(layer2_id)
+    layer1_quality = np.array(layer1_quality)
+    layer2_quality = np.array(layer2_quality)
+    layer1_type = np.array(layer1_type)
+    layer2_type = np.array(layer2_type)
+
+    # create a layer object
+    layer1 = Layer(layer1_name, gps_time, layer1_id, lat, lon, layer1_quality, layer1_twtt, layer1_type)
+    layer2 = Layer(layer2_name, gps_time, layer2_id, lat, lon, layer2_quality, layer2_twtt, layer2_type)
+
+    # append the layer to the layers list
+    layers.append(layer1)
+    layers.append(layer2)
+    print(f"layer1: {layer1.layer_name} number of points: {layer1.twtt.shape[0]}")
+    print(f"layer2: {layer2.layer_name} number of points: {layer2.twtt.shape[0]}")
+
     return layers
 
 
