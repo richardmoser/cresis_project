@@ -93,7 +93,7 @@ class Layer:
     A class to represent a layer in the CSARP_layer mat file.
     """
 
-    def __init__(self, layer_name, elevation, gps_time, id, lat, lon, param, quality, twtt, type):
+    def __init__(self, layer_name, gps_time, id, lat, lon, param, quality, twtt, type, elevation=None):
         # capitalize the first letter of the layer name
         layer_name = layer_name[0].upper() + layer_name[1:]
         self.layer_name = layer_name

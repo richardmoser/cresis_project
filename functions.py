@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import os
+import h5py
 import scipy.io as sio
 import datetime
 import pyproj
@@ -20,7 +21,7 @@ def mat_pickler_layerData(season, flight, testing_mode=False, readout=False, sav
     print("Reading data files...")
     print("--------------------")
     segment_data_file = 'Data_' + flight + '_'
-    layer_attributes_file = 'layer_' + flight + '.mat'
+    layer_attributes_file = 'layer_' + flight + '.mat' # seems to only be used for the layer names in this code
     # layerData = not layer
     # set the directory, segment data file, layer attributes file, and start and end frames
     if testing_mode:
@@ -66,7 +67,7 @@ def mat_pickler_layerData(season, flight, testing_mode=False, readout=False, sav
 
 
     # print the keys as strings without all the extra stuff
-    keys = [str(key).strip("_") for key in data_mat[0].keys()]
+    # keys = [str(key).strip("_") for key in data_mat[0].keys()]
     # print(f"DATA MAT FILE KEYS:")
     # for key in keys:
     #     print(key, end="")
@@ -76,7 +77,7 @@ def mat_pickler_layerData(season, flight, testing_mode=False, readout=False, sav
     # print("\n")
     # print the keys in the layer attributes mat file
     # print(f"\nLAYER ATTRIBUTES MAT FILE KEYS:")
-    keys = [str(key).strip("_") for key in attribute_mat.keys()]
+    # keys = [str(key).strip("_") for key in attribute_mat.keys()]
     # for key in keys:
     #     print(key, end="")
     #     # if not last key, print a comma
@@ -132,6 +133,13 @@ def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=Tr
     print("--------------------")
     segment_data_file = 'Data_' + flight + '_'
     layer_attributes_file = 'layer_' + flight + '.mat'
+
+    # if there is only one segment data file, return nothing
+    # TODO: no that is not how that works, 2018DC8 simply has fewer mat files per flight for some reason
+    # if not os.path.exists('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\' + segment_data_file + '002.mat'):
+    #     print(f"Not all data is downloaded for flight {flight}.")
+    #     return
+
     # layerData = not layer
     # set the directory, segment data file, layer attributes file, and start and end frames
     if testing_mode:
@@ -174,22 +182,22 @@ def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=Tr
 
 
     # print the keys as strings without all the extra stuff
-    keys = [str(key).strip("_") for key in data_mat[0].keys()]
-    print(f"DATA MAT FILE KEYS:")
-    for key in keys:
-        print(key, end="")
+    # keys = [str(key).strip("_") for key in data_mat[0].keys()]
+    # print(f"DATA MAT FILE KEYS:")
+    # for key in keys:
+    #     print(key, end="")
         # if not last key, print a comma
-        if key != keys[-1]:
-            print(",", end=" ")
+        # if key != keys[-1]:
+        #     print(",", end=" ")
     # print("\n")
     # print the keys in the layer attributes mat file
-    print(f"\nLAYER ATTRIBUTES MAT FILE KEYS:")
-    keys = [str(key).strip("_") for key in attribute_mat.keys()]
-    for key in keys:
-        print(key, end="")
+    # print(f"\nLAYER ATTRIBUTES MAT FILE KEYS:")
+    # keys = [str(key).strip("_") for key in attribute_mat.keys()]
+    # for key in keys:
+        # print(key, end="")
         # if not last key, print a comma
-        if key != keys[-1]:
-            print(",", end=" ")
+        # if key != keys[-1]:
+        #     print(",", end=" ")
     print("\n--------------------\n")
 
     layers = layerize(data_mat, attribute_mat)
@@ -230,9 +238,84 @@ def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=Tr
 
     # TODO: make this selectable per season and date with the directory base and
         # CSARP_layer file as hard-coded defaults
-    # TODO: add a pygame gui with recent files and a file browser
-        # save the recent files to a file and load them on startup
-    # TODO: organize all of this into a library or something similar
+
+
+def mat_pickler_h5py(season, flight, testing_mode=False, readout=False, save=True, plot_layer=False):
+    print("Reading data files...")
+    print("--------------------")
+    segment_data_file = 'Data_' + flight + '_'
+    layer_attributes_file = 'layer_' + flight + '.mat'
+
+    # set the directory, segment data file, layer attributes file, and start and end frames
+    if testing_mode:
+        # the dir is the current directory + the test_data folder
+        dir = os.getcwd() + '\\test_data\\' + flight + '\\'
+
+            # dir = ('test_data') + '\\'
+            # contains all of the actual data such as twtt, lat, lon, etc.
+            # contains the attributes of the layer such as name, param, etc.
+    else:
+        # TODO: refactor this into a try except block, maybe upstream of this function where it is called
+        dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
+        #     # leaving because it might actually be good. the below line works for 2018_Antarctica_DC8 at least as it
+        #     # has the CSARP_layerData folder instead of CSARP_layer.
+
+        # contains all of the actual data such as twtt, lat, lon, etc.
+        # contains the attributes of the layer such as name, param, etc.
+        print(f"layer_attributes_file: {layer_attributes_file}")
+    # contains the attributes of the layer such as name, param, etc.
+
+    # dir = C:\Users\rj\Documents\cresis\rds\2018_Antarctica_DC8\CSARP_layer\20181112_02
+    # dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181112_02\\')
+    # segment_data_file = 'Data_20181112_02_'
+    # layer_attributes_file = 'layer_20181112_02.mat'
+
+    startframe = '001'
+    # endframe = '015'
+    # endframe = the number of files in the directory
+    files = os.listdir(dir)
+    endframe = str(len(files) - 1).zfill(3)
+
+    # load an array of mat files
+    data_mat = []
+    for i in range(int(startframe), int(endframe)+1):
+        f = h5py.File(dir + segment_data_file + str(i).zfill(3) + '.mat', 'r')
+        data_mat.append(f)
+    # data_mat = np.array([sio.loadmat(dir + segment_data_file + str(i).zfill(3) + '.mat')
+
+    if readout:
+        print("--------------------", end="")
+        for layer in layers:
+            print(f"\n{layer.layer_name} number of points: {layer.twtt.shape[0]}")
+            print(f"{layer.layer_name} twtt first three: {layer.twtt[:3].tolist()} ")
+            print(f"{layer.layer_name} twtt last three: {layer.twtt[-3:].tolist()} ")
+        print("--------------------\n")
+
+    if save:
+        # save layers to a pickle file
+        # print("Saving layers to a pickle file...")
+        print("--------------------")
+        # list current directory
+        # print(f"Current directory: {}")
+        file_name = "layer_export" + layer_attributes_file[5:-4] + ".pickle"
+        pickle.dump(layers, open(file_name, "wb"))
+        print(file_name, " saved in local directory of this python file.")
+        print("--------------------\n")
+
+    if plot_layer:
+        # plot the layers
+        print("Plotting layers...")
+        print("--------------------")
+        # plot the layer depths vs gps time for each layer on the same plot
+        for layer in layers:
+            plt.plot(layer.gps_time, layer.twtt, label=layer.layer_name)
+        plt.xlabel("GPS Time")
+        plt.ylabel("Two Way Travel Time (ns)")
+        plt.title("Elevation vs GPS Time")
+        plt.legend()
+
+        plt.show()
+        print("--------------------\n")
 
 
 def layerize(data_mat, attribute_mat):
@@ -302,7 +385,7 @@ def layerize(data_mat, attribute_mat):
             layer_type = np.append(layer_type, data_mat[j]['type'])
 
         # create a Layer object
-        layers.append(Layer(layer_name, elevation, gps_time, id, lat, lon, param, quality, twtt, layer_type))
+        layers.append(Layer(layer_name, gps_time, id, lat, lon, param, quality, twtt, layer_type, elevation))
         print(f"{layers[i].layer_name} Layer found and created")
 
     print("--------------------\n")
@@ -327,6 +410,57 @@ def read_layers(file_name):
     print(section_break)
     return layers
 
+
+def append_layers(file_name, layers):
+    """
+    :param file_name: the name of the pickle file containing the layers, e.g. "layer_export_20181030_01.pickle"
+    :param layers: a list of Layer objects
+    :return: nothing
+    """
+    print("Appending layers to pickle file...")
+    print("--------------------")
+    # append layers to the pickle file
+    with open(file_name, 'rb') as f:
+        old_layers = pickle.load(f)
+    new_layers = old_layers + layers
+    with open(file_name, 'wb') as f:
+        pickle.dump(new_layers, f)
+    print("Layers appended to pickle file.")
+    print(section_break)
+
+
+# def full_season_layerize(season, OTHER_STUFF)
+    # TODO: make this function troll through the CSARP_layerData folder and layerize all the flights in a season
+    # may have to run it on a server or something because it could take a long time
+    # crossover will almost certainly need to be run on a server
+    # once it is in the pickle file, it can be read and manipulated on a local machine though
+def full_season_layerize(season, testing_mode=False, readout=False, save=True, plot_layer=False):
+    """
+    :param season: the name of the season, e.g. "2018_Antarctica_DC8"
+    :param testing_mode: a boolean to run the function in testing mode
+    :param readout: a boolean to print the layers to the console
+    :param save: a boolean to save the layers to a pickle file
+    :param plot_layer: a boolean to plot the layers
+    :return: nothing
+    """
+    """
+    This only works if you have processed every single flight in the season with the picker tool.
+    """
+    print("Layerizing full season...")
+    print("--------------------")
+    # list the flights in the season
+    # dir = 'C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layerData\\'
+    dir = 'C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\'
+    flights = os.listdir(dir)
+    print(f"Flights in {season}: {flights}")
+    print("--------------------\n")
+    # layerize each flight
+    for flight in flights:
+        # mat_pickler_layerData(season, flight, testing_mode, readout, save, plot_layer)
+        mat_pickler_layer(season, flight, testing_mode, readout, save, plot_layer)
+    print("Full season layerized.")
+    print("--------------------\n")
+    
 
 def s_to_ms(x, pos):
     """
