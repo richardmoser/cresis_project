@@ -13,7 +13,6 @@ import pickle
 import pyproj
 import math
 
-
 def iceflow_data_file_loader():
     """
     This function is used to visualize the iceflow map in the file antarctic_ice_vel_phase_map_v01.nc which comes from
@@ -160,14 +159,24 @@ def xyindex_vector_to_heading(x_index, y_index, x_vector, y_vector):
     :param y_vector: the y vector
     :return: the heading in EPSG:4326
     """
+    x, y = index_to_x(x_index), index_to_y(y_index)
     # convert the x and y coordinates to lat and lon
     lat, lon = xyindex_to_latlon(x_index, y_index)
     # convert the x and y vector to lat and lon
-    lat_vector, lon_vector = xyindex_to_latlon(x_index + x_vector, y_index + y_vector)
+    lat_vector, lon_vector = xyindex_to_latlon(x + x_vector, y + y_vector)
     # calculate the heading
     geodesic = pyproj.Geod(ellps='WGS84')
     angle1, angle2, distance = geodesic.inv(lon, lat, lon_vector, lat_vector)
     return angle1, angle2, distance
+
+    # # convert the x and y coordinates to lat and lon
+    # lat, lon = xyindex_to_latlon(x_index, y_index)
+    # # convert the x and y vector to lat and lon
+    # lat_vector, lon_vector = xyindex_to_latlon(x_index + x_vector, y_index + y_vector)
+    # # calculate the heading
+    # geodesic = pyproj.Geod(ellps='WGS84')
+    # angle1, angle2, distance = geodesic.inv(lon, lat, lon_vector, lat_vector)
+    # return angle1, angle2, distance
 
 
 def find_nearest_x_and_y(x, y, iceflow_data):
@@ -253,19 +262,19 @@ def xy_to_nearest_unmasked_index(x, y, iceflow_data, max_radius=10, printout=Fal
     :param printout: whether or not to print the nearest unmasked point
     :return: the nearest unmasked x and y value in the iceflow data to an input x and y value
     """
-    x = x_to_index(x)
-    y = y_to_index(y)
-    unmasked = []
-    for x_iterator in range(x - max_radius, x + max_radius):
-        for y_iterator in range(y - max_radius, y + max_radius):
+    x = x_to_index(x)  # convert the x value to an index
+    y = y_to_index(y)  # convert the y value to an index
+    unmasked = []  # a list to store the unmasked x and y values
+    for x_iterator in range(x - max_radius, x + max_radius):  # iterate through the x values within the max_radius
+        for y_iterator in range(y - max_radius, y + max_radius):  # iterate through the y values within the max_radius
             if (
                     0 <= x_iterator < iceflow_data[2].shape[
                 0]  # if the x index is within the bounds of the iceflow data
                     and 0 <= y_iterator < iceflow_data[2].shape[1]
                     and not np.ma.is_masked(iceflow_data[2][x_iterator][y_iterator])
                     and not np.ma.is_masked(iceflow_data[3][x_iterator][y_iterator])
-            ):
-                unmasked.append((x_iterator, y_iterator))
+            ):  # if the x and y values are unmasked
+                unmasked.append((x_iterator, y_iterator))  # append the x and y values to the unmasked list
             if printout and not np.ma.is_masked(iceflow_data[2][x_iterator][y_iterator]):
                 print(f"unmasked x: {x_iterator}, unmasked y: {y_iterator}")
                 print(
@@ -282,8 +291,8 @@ def xy_to_nearest_unmasked_index(x, y, iceflow_data, max_radius=10, printout=Fal
             min_distance = distance
             min_x = x_iterator
             min_y = y_iterator
-    # TODO: figure out why these are indices and not x and y
-    # it works fine, they just are.
+
+    # print(f"latlon of nearest unmasked: {iceflow_data[4][min_x][min_y], iceflow_data[5][min_x][min_y]}")
     return min_x, min_y
 
 

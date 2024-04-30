@@ -2,18 +2,20 @@
 Author: Richard Moser
 Description: This file contains classes and functions used in other files. Ideally, this will clean up the other code.
 """
-import pickle
-import matplotlib.pyplot as plt
-import numpy as np
-import math
-import os
+# import pickle
+# import matplotlib.pyplot as plt
+# import numpy as np
+# import math
+# import os
 import h5py
 import scipy.io as sio
 import datetime
-import pyproj
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 from shapely.geometry import LineString
 from mpl_toolkits.basemap import Basemap
 from project_classes import *
+from iceflow_library import *
 
 section_break = "--------------------\n"
 
@@ -932,7 +934,8 @@ def twtt_at_point(read_layer, surface_layer, indices, corrected=True, quiet=Fals
     return twtt
 
 
-def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77, cross_index=0, filename=None):
+def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77,
+                         cross_index=0, filename=None):
     """
     :param layers: a list of Layer objects
     :param intersection_indices: a list of indices in the lat-lon arrays where the flight path
@@ -941,16 +944,15 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     :return: nothing (plots the layers and the map)
     """
     plt.figure(figsize=(16, 8), layout='constrained')
-    print("Plotting layers and map...")
+    print("Plotting layers...")
     print("--------------------")
     print("Adjusting for surface twtt...")
     for layer in layers:
         corrected_layer = layer.twtt - layers[0].twtt
         layer.twtt_corrected = corrected_layer
 
-
     # ax2 will be the layer plot
-    plt.subplot(1, 2, 1)
+    # plt.subplot(1, 2, 1)
 
     # plot the layer depths vs index for 500 points before and after the first
     # crossover point for each layer.
@@ -985,11 +987,16 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     plt.scatter(offset, twtt_at_point(layers[1], layers[0],
                                       intersection_indices, quiet=True)[0][1], color='green',
                 label='X Point 2')
+
+    # print the twtt at the crossover point on both segments
+    twtt = twtt_at_point(layers[1], layers[0], intersection_indices, quiet=True)[0]
+    print(f"twtt: {twtt}")
+
     # plot a line at the crossover point
     plt.axvline(x=offset, color='black', label='X Point', linestyle='--', linewidth=0.3)
 
-    # set the y axis to be in nanoseconds instead of seconds
-    plt.ylabel("Adjusted Two Way Travel Time (ns)")
+    # set the y axis to be in microseconds instead of seconds
+    plt.ylabel(f"Adjusted Two Way Travel Time ({chr(956)}s)")
     plt.xlabel("Index")
 
     # force the y values to be displayed in 1e-6 ticks (microseconds) instead of 1e-5 ticks (tens of microseconds)
@@ -1005,10 +1012,11 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
 
     # set the y axis to be in microseconds instead of seconds
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(s_to_ms))
+    plt.legend(fontsize='smaller', loc='upper right', bbox_to_anchor=(1, 0.9))
 
     # make the right side y axis show the depth in meters by converting the twtt to depth using the refractive index
     min_y, max_y = plt.ylim()
-    n = refractive_index
+    n = int(refractive_index)
     c = 299792458  # m/s
     v = c / n
     # depth = twtt * v / 2
@@ -1027,16 +1035,23 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     plt.xlabel("Distance (m)")
 
     plt.title("Adjusted Two Way Travel Time vs Index")
-    plt.legend(["legend"], fontsize='smaller', loc='upper right', bbox_to_anchor=(1.1, 1.1))
+    if filename:
+        # plt.savefig(f"{filename}.png", dpi=250)
+        plt.savefig(f"C:\\Users\\rj\Documents\\cresis_project\\screens\\{filename}_layers.png", dpi=250)
 
+    plt.show()
+
+
+def plot_map(layers, intersection_indices, intersection_points, iceflow_data, season, flight,  zoom=False, cross_index=0, filename=None):
     """
     plot the map
     """
-    plt.subplot(1, 2, 2)
-
+    plt.figure(figsize=(16, 16), layout='constrained')
+    print("Plotting map...")
     # TODO: add an offset to the zoom settings so that the crossover point is in the center of the zoomed in map
+    offset = 500  # this is not that offset
 
-    # # this code sets up a polar stereographic map of antarctica with the South Pole in the center
+    # this code sets up a polar stereographic map of antarctica with the South Pole in the center
     zoom_out_to_continent = not zoom
     if zoom_out_to_continent:
         llcrnrx = -400000
@@ -1050,7 +1065,7 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
         urcrnry = 100000
     lat_0 = intersection_points[cross_index][0]
     lon_0 = intersection_points[cross_index][1]
-    print(f"debug: lat_0: {lat_0}, lon_0: {lon_0}")
+    # print(f"debug: lat_0: {lat_0}, lon_0: {lon_0}")
     m = Basemap(projection='ortho', lat_0=lat_0, lon_0=lon_0, llcrnrx=llcrnrx,
                 llcrnry=llcrnry, urcrnrx=urcrnrx, urcrnry=urcrnry, resolution='c')
 
@@ -1071,31 +1086,46 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
            color='green', linewidth=1)
     # plot labels for the flight paths at their start points
     plt.text(
-        m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[
-            0],
-        m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[
-            1], '\nsegment 1', fontsize='smaller', fontweight='bold', ha='right', va='top', color='red')
+        m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[0],
+        m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[1],
+        '\nsegment 1', fontsize='smaller', fontweight='bold', ha='right', va='top', color='red')
     plt.text(
-        m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[
-            0],
-        m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[
-            1], '\nsegment 2', fontsize='smaller', fontweight='bold', ha='left', va='top', color='green')
+        m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[0],
+        m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[1],
+        '\nsegment 2', fontsize='smaller', fontweight='bold', ha='left', va='top', color='green')
     # plot the South Pole
     # m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
     # plot the crossover points
     for point in intersection_points:
-        m.scatter(point[1], point[0], latlon=True, color='darkred', linewidth=1, label='Crossover Point')
-        plt.text(m(point[1], point[0])[0], m(point[1], point[0])[1] - 10000, 'Crossover Point\n\n',
+        # m.scatter(point[1], point[0], latlon=True, color='darkred', linewidth=10, label='Crossover Point')
+        plt.scatter(m(point[1], point[0])[0], m(point[1], point[0])[1], color='darkred', linewidth=5,
+                    label='Crossover Point')
+        plt.text(m(point[1], point[0])[0], m(point[1], point[0])[1] - 10000,
+                 f'Crossover Point {intersection_points.index(point) + 1}\n\n',
                  fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
 
-    # m.scatter(intersection_points[cross_index][1], intersection_points[cross_index][0], latlon=True, color='darkred',
-    #           linewidth=1, label='Crossover Point')
+    # m.scatter(intersection_points[cross_index][1]+1, intersection_points[cross_index][0]+1, latlon=True, color='darkred',
+    # linewidth=1, label='Crossover Point')
     # plt.text(m(intersection_points[cross_index][1], intersection_points[cross_index][0])[0],
     #          m(intersection_points[cross_index][1], intersection_points[cross_index][0])[1] - 10000,
     #          'Crossover Point\n\n',
     #          fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
 
-    # plot the crossover line
+    # plot the the ice flow direction at the crossover point
+    for i in range(len(intersection_indices)):
+        nearest_x_index, nearest_y_index = xy_to_nearest_unmasked_index(intersection_points[i][0],
+                                                                        intersection_points[i][1], iceflow_data,
+                                                                        max_radius=10)
+    flow = flow_at_x_y(nearest_x_index, nearest_y_index, iceflow_data)
+    flow_heading = xyindex_vector_to_heading(nearest_x_index, nearest_y_index, flow[0], flow[1])[0]
+    # m.quiver(intersection_points[0][1], intersection_points[0][0], 1000 * np.cos(np.radians(flow_heading)),
+    #          1000 * np.sin(np.radians(flow_heading)), latlon=True, color='blue', label='Ice Flow Vector')
+    # plot the ice flow vector in the upper right corner as a quiver
+    m.quiver(intersection_points[0][1] + 2.5, intersection_points[0][0] + 0.7, 10000 * np.cos(np.radians(flow_heading)),
+             10000 * np.sin(np.radians(flow_heading)), latlon=True, color='blue', label='Ice Flow Vector')
+    plt.text(m(intersection_points[0][1] + 2.5, intersection_points[0][0] + 0.6)[0],
+             m(intersection_points[0][1] + 5, intersection_points[0][0] + 0.7)[1], 'Ice Flow Vector\n\n',
+             fontsize='smaller', fontweight='bold', ha='center', va='top', color='blue')
 
     x, y = m(0, -90)
     # plt.text(x, y, '\nSouth Pole', fontsize='smaller', fontweight='bold', ha='center', va='top', color='black')
@@ -1105,13 +1135,88 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
 
     # save the plot
     if filename:
-        plt.savefig(f"{filename}.png", dpi=250)
+        # plt.savefig(f"{filename}.png", dpi=250)
+        plt.savefig(f"C:\\Users\\rj\Documents\\cresis_project\\screens\\{filename}_map.png", dpi=250)
 
     plt.show()
 
     print("plotted map")
     print("--------------------\n")
 
+
+def plot_map_cartopy(layers, intersection_indices, intersection_points, iceflow_data, season, flight,  zoom=False, cross_index=0, filename=None):
+    """
+
+    """
+    plt.figure(figsize=(16, 16), layout='constrained')
+    print("Plotting map...")
+    # TODO: add an offset to the zoom settings so that the crossover point is in the center of the zoomed in map
+    offset = 500  # this is not that offset
+    dimension = 5
+    crs_epsg = ccrs.SouthPolarStereo(central_longitude=0.0, true_scale_latitude=-71)
+    fig = plt.figure(figsize=(16, 16))
+    ax = plt.axes(projection=crs_epsg)
+
+    # set the centerpoint to the first crossover point
+    ax.set_extent([intersection_points[0][1] - dimension, intersection_points[0][1] + dimension,
+                   intersection_points[0][0] - dimension, intersection_points[0][0] + dimension], crs_epsg)
+
+    ax.coastlines()
+    ax.gridlines()
+    ax.add_feature(cfeature.LAND, zorder=0, facecolor='lightgrey')
+    ax.add_feature(cfeature.OCEAN, zorder=0, edgecolor='black')
+
+    # set the continent fill to a light grey
+
+    ax.plot(layers[1].lon, layers[1].lat, color='black', linewidth=3)
+
+    # plot the crossover points
+    # for point in intersection_points:
+    #     ax.scatter(point[1], point[0], color='red', linewidth=5, label='Crossover Point')
+    #     plt.text(point[1], point[0], f'Crossover Point {intersection_points.index(point) + 1}\n\n',
+    #              fontsize='smaller', fontweight='bold', ha='center', va='top', color='darkred')
+
+    # plot a single crossover point
+    ax.scatter(intersection_points[0][1], intersection_points[0][0], color='red', linewidth=5, label='Crossover Point')
+
+    # plot the section of the flight path in the plot above
+    ax.plot(layers[0].lon[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+            layers[0].lat[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset], color='red',
+            linewidth=1)
+
+    ax.plot(layers[0].lon[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
+            layers[0].lat[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset], color='lightgreen',
+            linewidth=1)
+
+    # plot labels for the flight paths at their start points
+    plt.text(intersection_points[0][1], intersection_points[0][0], '\nsegment 1', fontsize='smaller', fontweight='bold',
+             ha='right', va='top', color='red')
+    # plt.text(intersection_points[0][1], intersection_points[0][0], '\nsegment 2', fontsize='smaller', fontweight='bold', ha='left', va='top', color='green')
+
+    # plot the ice flow direction at the crossover point
+    nearest_x_index, nearest_y_index = xy_to_nearest_unmasked_index(intersection_points[0][0],
+                                                                    intersection_points[0][1], iceflow_data,
+                                                                    max_radius=10)
+    flow = flow_at_x_y(nearest_x_index, nearest_y_index, iceflow_data)
+    flow_heading = xyindex_vector_to_heading(nearest_x_index, nearest_y_index, flow[0], flow[1])[0]
+
+    # plot the ice flow vector in the upper right corner as a quiver
+    ax.quiver(intersection_points[0][1] + 2.5, intersection_points[0][0] + 0.7,
+              10000 * np.cos(np.radians(flow_heading)),
+              10000 * np.sin(np.radians(flow_heading)), color='blue', label='Ice Flow Vector')
+    plt.text(intersection_points[0][1] + 2.5, intersection_points[0][0] + 0.6, 'Ice Flow Vector\n\n',
+             fontsize='smaller', fontweight='bold', ha='center', va='top', color='blue')
+
+    print(f"iceflow direction: {flow_heading}")
+
+    plt.title(f"Crossover map for {season}{flight}")
+    # save the plot
+    if filename:
+        # plt.savefig(f"{filename}.png", dpi=250)
+        plt.savefig(f"C:\\Users\\rj\Documents\\cresis_project\\screens\\{filename}_map.png", dpi=300)
+
+    print("plotted map")
+    print("--------------------\n")
 
 
 # def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77,
