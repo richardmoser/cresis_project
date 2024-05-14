@@ -483,22 +483,20 @@ def read_layers(file_name):
     return layers
 
 
-def append_layers(file_name, layers):
+def append_layers(layers1, layers2):
     """
-    :param file_name: the name of the pickle file containing the layers, e.g. "layer_export_20181030_01.pickle"
-    :param layers: a list of Layer objects
-    :return: nothing
+    :param layers1: a list of Layer objects
+    :param layers2: a list of Layer objects
+    :return: a list of Layer objects that is the combination of layers1 and layers2
     """
-    print("Appending layers to pickle file...")
+    print("Appending layers...")
     print("--------------------")
-    # append layers to the pickle file
-    with open(file_name, 'rb') as f:
-        old_layers = pickle.load(f)
-    new_layers = old_layers + layers
-    with open(file_name, 'wb') as f:
-        pickle.dump(new_layers, f)
-    print("Layers appended to pickle file.")
+    # append layers2 to layers1
+    layers = layers1 + layers2
+    for layer in layers:
+        print(layer.layer_name)
     print(section_break)
+    return layers
 
 
 # def full_season_layerize(season, OTHER_STUFF)
