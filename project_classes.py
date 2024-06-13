@@ -56,8 +56,6 @@ class Crossover:
         else:
             self.ice_flow_offset = None
             self.ice_flow_direction_error = None
-        # TODO: looks like this is going to ignore all but the first crossover point. Update to handle multiple
-        #  crossover points.
 
 
     def to_dict(self):

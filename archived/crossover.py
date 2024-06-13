@@ -32,7 +32,7 @@ posit = Twtt_Posit(layers[1], season, flight, intersection_indices)
 
 save_posit(posit)
 
-# print(gps_time_to_date(layers[0].gps_time[intersection_indices[0][0]]))
+# print(gps_time_to_date(layers[0].gps_time[intersect_indices[0][0]]))
 
 # find the plane's velocity in m/s using the distance between the endpoints and the time between the endpoints
 time1 = gps_time_to_date(layers[0].gps_time[intersection_indices[0][0]])
@@ -64,7 +64,7 @@ print(f"slope normalized: {round(ave_slope,2)}")
 heading = find_heading(layers[0], intersection_indices[0][0], 2)
 print(f"heading: {round(heading,2)}")
 
-# fancymap(layers, intersection_indices, intersection_points, zoom=zoom, refractive_index=1.77, cross_index=0, dpi=150)
+# fancymap(layers, intersect_indices, intersection_points, zoom=zoom, refractive_index=1.77, cross_index=0, dpi=150)
 
 
 interested = False
@@ -89,7 +89,7 @@ if interested:
     # print(f"difference: {my_depth_1 - my_depth_2} m")
 
     # loop through all intersections and print the depth at each
-    # for i in range(len(intersection_indices)):
+    # for i in range(len(intersect_indices)):
     #     my_depth_1 = twtt_to_depth(twtt_at_intersect[i][0], my_refractive_index)
     #     my_depth_2 = twtt_to_depth(twtt_at_intersect[i][1], my_refractive_index)
     #     print(f"depth at crossover point {i} on segment 1: {my_depth_1} m")
@@ -115,7 +115,7 @@ if interested:
     print(season, flight)
     cross_index = 0
     plot_layers_at_cross(layers, intersection_indices, intersection_points,zoom=zoom, refractive_index=my_refractive_index,cross_index=cross_index)
-    # fancymap(layers, intersection_indices, intersection_points, zoom=zoom, refractive_index=my_refractive_index, cross_index=cross_index)
+    # fancymap(layers, intersect_indices, intersection_points, zoom=zoom, refractive_index=my_refractive_index, cross_index=cross_index)
 
     # convert 25.8 microseconds to seconds
     time = 25.8 * 10 ** -6

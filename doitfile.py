@@ -40,8 +40,8 @@ def doit(season, flight):
     longitude = iceflow_data[5]
     print("iceflow data loaded")
     # %%
-    # if the file at filename exists, read in the intersection_indices and intersection_points from the pickle file
-    # otherwise, find the intersection_indices and intersection_points and save them to a pickle file
+    # if the file at filename exists, read in the intersect_indices and intersection_points from the pickle file
+    # otherwise, find the intersect_indices and intersection_points and save them to a pickle file
     filename = f"C:\\Users\\rj\\Documents\\cresis_project\\pickle_jar\\{season}_{flight}_crossover_points.pickle"
     if not os.path.isfile(filename):  # if the file does not exist
         print(f"File {filename} does not exist. Making it...")

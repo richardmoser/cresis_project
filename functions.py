@@ -16,12 +16,13 @@ from shapely.geometry import LineString
 from mpl_toolkits.basemap import Basemap
 from project_classes import *
 from iceflow_library import *
+import sys
 
-section_break = "--------------------\n"
+section_break = "--------------------"
 
 def mat_pickler_layerData(season, flight, testing_mode=False, readout=False, save=True, plot_layer=False):
     print("Reading data files...")
-    print("--------------------")
+    print(section_break)
     segment_data_file = 'Data_' + flight + '_'
     layer_attributes_file = 'layer_' + flight + '.mat' # seems to only be used for the layer names in this code
     # layerData = not layer
@@ -90,28 +91,28 @@ def mat_pickler_layerData(season, flight, testing_mode=False, readout=False, sav
     layers = layerize(data_mat, attribute_mat)
 
     if readout:
-        print("--------------------", end="")
+        print(section_break, end="")
         for layer in layers:
             print(f"\n{layer.layer_name} number of points: {layer.twtt.shape[0]}")
             print(f"{layer.layer_name} twtt first three: {layer.twtt[:3].tolist()} ")
             print(f"{layer.layer_name} twtt last three: {layer.twtt[-3:].tolist()} ")
-        print("--------------------\n")
+        print(section_break + "\n")
 
     if save:
         # save layers to a pickle file
         # print("Saving layers to a pickle file...")
-        print("--------------------")
+        print(section_break)
         # list current directory
         # print(f"Current directory: {}")
         file_name = "layer_export" + layer_attributes_file[5:-4] + ".pickle"
         pickle.dump(layers, open(file_name, "wb"))
         print(file_name, " saved in local directory of this python file.")
-        print("--------------------\n")
+        print(section_break + "\n")
 
     if plot_layer:
         # plot the layers
         print("Plotting layers...")
-        print("--------------------")
+        print(section_break)
     # plot the layer depths vs gps time for each layer on the same plot
         for layer in layers:
             plt.plot(layer.gps_time, layer.twtt, label=layer.layer_name)
@@ -121,7 +122,7 @@ def mat_pickler_layerData(season, flight, testing_mode=False, readout=False, sav
         plt.legend()
 
         plt.show()
-        print("--------------------\n")
+        print(section_break + "\n")
 
     # TODO: make this selectable per season and date with the directory base and
         # CSARP_layer file as hard-coded defaults
@@ -132,7 +133,7 @@ def mat_pickler_layerData(season, flight, testing_mode=False, readout=False, sav
 
 def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=True, plot_layer=False):
     print("Reading data files...")
-    print("--------------------")
+    print(section_break)
     segment_data_file = 'Data_' + flight + '_'
     layer_attributes_file = 'layer_' + flight + '.mat'
 
@@ -205,28 +206,28 @@ def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=Tr
     layers = layerize(data_mat, attribute_mat)
 
     if readout:
-        print("--------------------", end="")
+        print(section_break, end="")
         for layer in layers:
             print(f"\n{layer.layer_name} number of points: {layer.twtt.shape[0]}")
             print(f"{layer.layer_name} twtt first three: {layer.twtt[:3].tolist()} ")
             print(f"{layer.layer_name} twtt last three: {layer.twtt[-3:].tolist()} ")
-        print("--------------------\n")
+        print(section_break + "\n")
 
     if save:
         # save layers to a pickle file
         # print("Saving layers to a pickle file...")
-        print("--------------------")
+        print(section_break)
         # list current directory
         # print(f"Current directory: {}")
         file_name = "layer_export" + layer_attributes_file[5:-4] + ".pickle"
         pickle.dump(layers, open(file_name, "wb"))
         print(file_name, " saved in local directory of this python file.")
-        print("--------------------\n")
+        print(section_break + "\n")
 
     if plot_layer:
         # plot the layers
         print("Plotting layers...")
-        print("--------------------")
+        print(section_break)
     # plot the layer depths vs gps time for each layer on the same plot
         for layer in layers:
             plt.plot(layer.gps_time, layer.twtt, label=layer.layer_name)
@@ -236,7 +237,7 @@ def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=Tr
         plt.legend()
 
         plt.show()
-        print("--------------------\n")
+        print(section_break + "\n")
 
     # TODO: make this selectable per season and date with the directory base and
         # CSARP_layer file as hard-coded defaults
@@ -244,7 +245,7 @@ def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=Tr
 
 def mat_pickler_h5py(season, flight, testing_mode=False, readout=False, save=True, plot_layer=False):
     print("Reading data files...")
-    print("--------------------")
+    print(section_break)
     # set the directory, segment data file, layer attributes file, and start and end frames
     if testing_mode:
         # the dir is the current directory + the test_data folder
@@ -258,17 +259,17 @@ def mat_pickler_h5py(season, flight, testing_mode=False, readout=False, save=Tru
     layers = layerize_h5py(data_file, attributes_file, dir)
 
     if readout:
-        print("--------------------", end="")
+        print(section_break, end="")
         for layer in layers:
             print(f"\n{layer.layer_name} number of points: {layer.twtt.shape[0]}")
             print(f"{layer.layer_name} twtt first three: {layer.twtt[:3].tolist()} ")
             print(f"{layer.layer_name} twtt last three: {layer.twtt[-3:].tolist()} ")
-        print("--------------------\n")
+        print(section_break + "\n")
 
     if save:
         # save layers to a pickle file
         # print("Saving layers to a pickle file...")
-        print("--------------------")
+        print(section_break)
         # list current directory
         # print(f"Current directory: {}")
         directory = os.getcwd() + "\\pickle_jar\\"
@@ -276,12 +277,12 @@ def mat_pickler_h5py(season, flight, testing_mode=False, readout=False, save=Tru
         file_name = directory + "layer_export_" + flight + ".pickle"
         pickle.dump(layers, open(file_name, "wb"))
         print(file_name, " saved in local directory of this python file.")
-        print("--------------------\n")
+        print(section_break + "\n")
 
     if plot_layer:
         # plot the layers
         print("Plotting layers...")
-        print("--------------------")
+        print(section_break)
         # plot the layer depths vs gps time for each layer on the same plot
         for layer in layers:
             plt.plot(layer.gps_time, layer.twtt, label=layer.layer_name)
@@ -293,7 +294,7 @@ def mat_pickler_h5py(season, flight, testing_mode=False, readout=False, save=Tru
         plt.legend()
 
         plt.show()
-        print("--------------------\n")
+        print(section_break + "\n")
 
 
 def layerize(data_mat, attribute_mat):
@@ -324,14 +325,14 @@ def layerize(data_mat, attribute_mat):
     no_files = len(data_mat)
     no_layers = len(data_mat[0]['twtt']) - 1
     print("Layerizing data files...")
-    print("--------------------")
+    print(section_break)
     print(f"number of data files: {no_files}, number of layers: {no_layers}")
     # print("debug:")
     # print(f"layer name: {mat[0]['name']}")
 
     # print(attribute_mat['lyr_name'][0][0])
     # print(attribute_mat['lyr_name'][0][0][0])
-    # print("--------------------\n")
+    # print(section_break + "\n")
 
     for i in range(no_layers):
         layer_name = attribute_mat['lyr_name'][0][i][0]
@@ -366,7 +367,7 @@ def layerize(data_mat, attribute_mat):
         layers.append(Layer(layer_name, gps_time, id, lat, lon, param, quality, twtt, layer_type, elevation))
         print(f"{layers[i].layer_name} Layer found and created")
 
-    print("--------------------\n")
+    print(section_break + "\n")
     return layers
 
 
@@ -417,6 +418,15 @@ def layerize_h5py(data_file, attribute_file, dir):
     layer1_twtt = []
     layer2_twtt = []
 
+    print("\n\nlayerize_h5py debug:")
+    print(f"f['lat'][:]: {f['lat'][:]}")
+    print(f"f['lat'][:]: {f['lat'][:].flatten()[0]}")
+
+    # print(f"f['lat'][:][0]: {f['lat'][:][0]}")
+    # print(f"layer1 lon: {f['lon'][:]}")
+
+    print("\n\n")
+
     # Load data from each file
     for i in range(int(startframe), int(endframe) + 1):
         filename = data_file + str(i).zfill(3) + '.mat'
@@ -424,8 +434,8 @@ def layerize_h5py(data_file, attribute_file, dir):
             gps_time.append(f['gps_time'][:])
             layer1_id.append(f['id'][0])
             layer2_id.append(f['id'][1])
-            lat.append(f['lat'][:])
-            lon.append(f['lon'][:])
+            lat.append(f['lat'][:].flatten())
+            lon.append(f['lon'][:].flatten())
             # param.append(f['param'])
             # layer1_quality.append(f['quality'][0])
             # layer2_quality.append(f['quality'][1])
@@ -470,7 +480,7 @@ def read_layers(file_name):
     :return: a list of Layer objects from the pickle file (usually Surface, your custom layer(s), and Bottom)
     """
     print("Reading pickle file...")
-    print("--------------------")
+    print(section_break)
     # read layers.pickle into a list of Layer objects
 
     # file_name = 'layers.pickle'
@@ -479,7 +489,7 @@ def read_layers(file_name):
         layers = pickle.load(f)
     for layer in layers:
         print(layer.layer_name)
-    print(section_break)
+    print(section_break + "\n")
     return layers
 
 
@@ -490,12 +500,12 @@ def append_layers(layers1, layers2):
     :return: a list of Layer objects that is the combination of layers1 and layers2
     """
     print("Appending layers...")
-    print("--------------------")
+    print(section_break)
     # append layers2 to layers1
     layers = layers1 + layers2
     for layer in layers:
         print(layer.layer_name)
-    print(section_break)
+    print(section_break + "\n")
     return layers
 
 
@@ -517,20 +527,395 @@ def full_season_layerize(season, testing_mode=False, readout=False, save=True, p
     This only works if you have processed every single flight in the season with the picker tool.
     """
     print("Layerizing full season...")
-    print("--------------------")
+    print(section_break)
     # list the flights in the season
     # dir = 'C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layerData\\'
     dir = 'C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\'
     flights = os.listdir(dir)
     print(f"Flights in {season}: {flights}")
-    print("--------------------\n")
+    print(section_break + "\n")
     # layerize each flight
     for flight in flights:
         # mat_pickler_layerData(season, flight, testing_mode, readout, save, plot_layer)
         mat_pickler_layer(season, flight, testing_mode, readout, save, plot_layer)
     print("Full season layerized.")
-    print("--------------------\n")
+    print(section_break + "\n")
     
+
+# def cross_point(layer, seg_length, quiet=False):
+#     """
+#     :param seg_length:
+#     :param layer: a Layer object
+#     :param quiet: a boolean to suppress print statements
+#     :return: the point where the lat-lon crosses over its own path.
+#     purpose: layers[0].lat and layers[0].lon are numpy arrays of the latitudes and
+#     longitudes for a flight path. It does not connect back to the beginning.
+#     This function finds the point where the path crosses over itself.
+#     The lat-lon of the crossover point will not be exactly the same as the
+#     lat-lons in the arrays, but it will be very close.
+#     """
+#     verbose = not quiet
+#     print("Finding crossover point...")
+#     print(section_break)
+#     # create a list of line segments of length seg_length
+#     path_segments = []
+#     segment_ends = []
+#     if verbose:
+#         print(f"Dividing the path into segments of length {seg_length}...")
+#     for i in range(0, len(layer.lat), seg_length):
+#         if i + seg_length < len(layer.lat):
+#             path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + seg_length], layer.lon[i + seg_length])])
+#         else:
+#             path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[-1], layer.lon[-1])])
+#
+#     if verbose:
+#         print(f"Number of segments: {len(path_segments)}")
+#     print("Checking for intersections...")
+#     # check for intersections between the line segments
+#     # TODO: implement loading bar
+#     rough_intersections = []
+#     intersecting_segments = []
+#     for i in range(len(path_segments)):
+#         for j in range(i + 1, len(path_segments)):
+#             if segments_intersect(path_segments[i], path_segments[j]):
+#                 intersection_points = find_segment_intersection(path_segments[i], path_segments[j])
+#                 if intersection_points:
+#                     rough_intersections.append([intersection_points[0][0], intersection_points[1][0]])
+#                     intersecting_segments.append([i, j])
+#                     if verbose:
+#                         print(f"Segments {i} and {j} intersect near "
+#                               f"({intersection_points[0][0]}, {intersection_points[1][0]})")
+#
+#     if verbose:
+#         print("\nChecking for a more precise intersection...")
+#     fine_intersections = []
+#     intersection_indices = []
+#
+#     printed = False
+#
+#     for seg_pair in range(len(intersecting_segments)):
+#         seg1 = intersecting_segments[seg_pair][0]
+#         seg2 = intersecting_segments[seg_pair][1]
+#
+#         # translate segment numbers to indices in the lat-lon arrays
+#         if seg1 == 0:
+#             seg1_start = 0
+#             seg1_end = seg_length
+#         else:
+#             seg1_start = seg1 * seg_length
+#             seg1_end = seg1_start + seg_length
+#         if seg2 == 0:
+#             seg2_start = 0
+#             seg2_end = seg_length
+#         else:
+#             seg2_start = seg2 * seg_length
+#             seg2_end = seg2_start + seg_length
+#         if verbose:
+#             print(f"segment {seg1} start: {seg1_start}, segment 1 end: {seg1_end}")
+#         if verbose:
+#             print(f"segment {seg2} start: {seg2_start}, segment 2 end: {seg2_end}")
+#
+#         # create a list of line segments of length 1
+#         path_segments = []
+#         for i in range(seg1_start, seg1_end):
+#             path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1])])
+#         for i in range(seg2_start, seg2_end):
+#             path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1])])
+#
+#         # check for intersections between the line segments
+#         for first_seg in range(len(path_segments)):
+#             for sec_seg in range(first_seg + 1, len(path_segments)):
+#                 if segments_intersect(path_segments[first_seg], path_segments[sec_seg]):
+#                     intersection_points = find_segment_intersection(path_segments[first_seg], path_segments[sec_seg])
+#                     if intersection_points:
+#                         index1 = seg1_start + first_seg
+#                         index2 = seg2_start + sec_seg
+#                         # intersections.append([intersection_points])
+#                         # segment_ends.append([[path_segments[first_seg][0], path_segments[first_seg][1]],
+#                         #                      [path_segments[sec_seg][0], path_segments[sec_seg][1]]])
+#
+#                         segment_ends.append([[path_segments[first_seg][0][0][0], path_segments[first_seg][0][0][1], index1],
+#                                              [path_segments[sec_seg][0][0][0], path_segments[sec_seg][1][0][0], index2]])
+#                         fine_intersections.append([intersection_points[0][0], intersection_points[1][0]])
+#                         # fine_intersections are the first two points of the segment_ends list, i.e. two endpoints on
+#                         # opposing legs of the X. segment_ends are all four points of the X.
+#                         if verbose:
+#                             print(f"Segments {seg1} and {seg2} intersect near indices "
+#                                   f"{index1} and {index2}\nThis corresponds roughly to the "
+#                                   f"lat-lon: ({fine_intersections[-1][0]}, {fine_intersections[-1][1]})")
+#                         intersection_indices.append([index1, index2])
+#
+#                         if not printed:
+#                             print("--------------------\n\n")
+#                             print(f"path_segments[first_seg]: {path_segments[first_seg]}")
+#                             print(f"path_segments[sec_seg]: {path_segments[sec_seg]}\n")
+#                             print(f"segment_ends[first_seg]: {segment_ends}")
+#
+#                             print("--------------------\n\n")
+#                             printed = True
+#
+#
+#
+#     print(f"Number of intersections: {len(fine_intersections)}")
+#     if verbose:
+#         print(f"Number of rough intersections: {len(rough_intersections)}")
+#         print(f"Number of intersection indices: {len(intersection_indices)}")
+#         # print(f"Indices: {intersect_indices}")
+#         # for index in intersect_indices:
+#         #     print(f"Index: {index}: ")
+#     for i in range(len(intersection_indices)):
+#         print(f"Index {i}: \n"
+#               f"indices: \t{intersection_indices[i]}\n"
+#               f"lat-lon: \t({fine_intersections[i][0]}, {fine_intersections[i][1]})\n"
+#                 f"segment ends: \t{segment_ends[i]}\n"
+#               f"lat-lon by layer: \t({layer.lat[intersection_indices[i][0]]}, {layer.lon[intersection_indices[i][0]]})")
+#
+#     print(f"Intersection at index {intersection_indices[0][0]} and {intersection_indices[0][1]}")
+#     for i in range(len(intersection_indices)):
+#         # TODO Error 1: correct for the fine intersection points being wrong for some reason
+#             # (lat is close but lon is 6 degrees off in the 20181112_02 flight)
+#         fine_intersections[i][0] = layer.lat[intersection_indices[i][0]]
+#         fine_intersections[i][1] = layer.lon[intersection_indices[i][0]]
+#     print(section_break + "\n")
+#
+#     return fine_intersections, intersection_indices, segment_ends
+
+def progress_bar(current, total, bar_length=20):
+    """
+    :param current: the current step number of the loop
+    :param total: the number of anticipated steps in the loop
+    :param bar_length: the length of the progress bar
+    :return: none, but prints a progress bar to the console
+    """
+    BLACK = '\033[30m'
+    RED = '\033[31m'
+    GREEN = '\033[32m'
+    YELLOW = '\033[33m'  # orange on some systems
+    BLUE = '\033[34m'
+    MAGENTA = '\033[35m'
+    CYAN = '\033[36m'
+    LIGHT_GRAY = '\033[37m'
+    DARK_GRAY = '\033[90m'
+    BRIGHT_RED = '\033[91m'
+    BRIGHT_GREEN = '\033[92m'
+    BRIGHT_YELLOW = '\033[93m'
+    BRIGHT_BLUE = '\033[94m'
+    BRIGHT_MAGENTA = '\033[95m'
+    BRIGHT_CYAN = '\033[96m'
+    WHITE = '\033[97m'
+    RESET = '\033[0m'  # called to return to standard terminal text color
+
+    current += 1  # gets us to 100% when current = total
+    sys.stdout.write('\r')
+    bars = int(bar_length * current / total)
+    # change color per 25% chunk
+    if bars < bar_length / 4:
+        sys.stdout.write(f"{BRIGHT_RED}[{'=' * bars}{' ' * (bar_length - bars)}] {100 / total * current:.1f}%{RESET}")
+    elif bars < bar_length / 2:
+        sys.stdout.write(f"{MAGENTA}[{'=' * bars}{' ' * (bar_length - bars)}] {100 / total * current:.1f}%{RESET}")
+    elif bars < bar_length * 3 / 4:
+        sys.stdout.write(f"{BRIGHT_BLUE}[{'=' * bars}{' ' * (bar_length - bars)}] {100 / total * current:.1f}%{RESET}")
+    else:
+        sys.stdout.write(f"{BRIGHT_GREEN}[{'=' * bars}{' ' * (bar_length - bars)}] {100 / total * current:.1f}%{RESET}")
+    sys.stdout.flush()  # flush the buffer
+
+
+def segments_intersect(segment1, segment2):
+    """
+    :param segment1: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
+    :param segment2: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
+    :return: True if the segments intersect, False if they do not
+    """
+    line1 = LineString(segment1)
+    line2 = LineString(segment2)
+    return line1.intersects(line2)
+
+
+def find_segment_intersection(segment1, segment2)->list:
+    """
+    :param segment1: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
+    :param segment2: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
+    :return: the point where the segments intersect, or None if they do not intersect
+    """
+    line1 = LineString(segment1)  # define a line made from two lat-lon points
+    line2 = LineString(segment2)  # define a line made from two lat-lon points
+    intersection = line1.intersection(line2)  # find the intersection of the two lines
+    # if the intersection is the end point of one of the segments, then it is not a crossover point
+    if intersection.geom_type == 'Point':
+        if intersection.xy[0][0] == segment1[0][0] or intersection.xy[1][0] == segment1[0][1]:
+            print("Intersection is the end point of segment 1 and is not a crossover point.")
+            return None
+        elif intersection.xy[0][0] == segment1[1][0] or intersection.xy[1][0] == segment1[1][1]:
+            return None
+        elif intersection.xy[0][0] == segment2[0][0] or intersection.xy[1][0] == segment2[0][1]:
+            return None
+        elif intersection.xy[0][0] == segment2[1][0] or intersection.xy[1][0] == segment2[1][1]:
+            return None
+        else:  # intersection is not an end point of either segment, it is a crossover point
+            return [intersection.xy[0][0], intersection.xy[1][0]]
+            # the format of .xy ends up being [["d"], lat], [["d"], lon] for some damn reason. No clue what "d" is. Handling the brackets here to increase readability downstream.
+    return None
+
+def cross_point(layer, seg_length, quiet=False):
+    """
+    :param seg_length:
+    :param layer: a Layer object
+    :param quiet: a boolean to suppress print statements
+    :return: the point where the lat-lon crosses over its own path.
+    purpose: layers[0].lat and layers[0].lon are numpy arrays of the latitudes and longitudes for a flight path. It
+    does not connect back to the beginning. This function finds the point where the path crosses over itself. The lat-
+    lon of the crossover point will not be exactly the same as the lat-lons in the arrays, but it will be very close.
+    """
+    verbose = not quiet
+    print(section_break)
+    # create a list of line segments of length seg_length
+    path_segments = []
+    segment_ends = []
+    print(f"Dividing the path into {len(layer.lat) // seg_length} segments of length {seg_length}.")
+    # break the path into segments of length seg_length
+        # note: this disregards the seg_length - 1(2?) points between the endpoints of each segment
+        # i.e. we are making a less precise but faster version of the flight path
+    for i in range(0, len(layer.lat), seg_length):
+        if i + seg_length < len(layer.lat):  # if the segment is not the last one
+            path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + seg_length], layer.lon[i + seg_length])])
+            # append a line segment with 2 endpoints seg_length apart to the path_segments list
+        else:  # if the segment is the last one
+            path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[-1], layer.lon[-1])])
+            # append the final line segment with endpoints whatever-length-is-left apart to the path_segments list
+    """
+    Path_segments is a list of pairs of lat-lon points which are the endpoints of the segments. The segments
+    sequentially approximate the flight path with a factor of seg_length less points than the original flight path.
+    """
+
+    if verbose:
+        print(f"Number of segments: {len(path_segments)}")
+    print("Checking for intersections...")
+    # check for rough intersections between the line segments
+    rough_intersections = []
+    intersecting_segments = []
+    for i in range(len(path_segments)):  # for segment #i in the number of segments
+        progress_bar(i, len(path_segments))  # display a progress bar of segments checked
+        for j in range(i + 1, len(path_segments)):  # for every other segment after segment #i
+            if segments_intersect(path_segments[i], path_segments[j]):  # if the segments intersect
+                intersection_point = find_segment_intersection(path_segments[i], path_segments[j])  # returns the intersection point [lat, lon] or None
+                if intersection_point:  # if there is an intersection
+                    rough_intersections.append(intersection_point)
+                    intersecting_segments.append([i, j])  # append
+                    if verbose:
+                        print(f"Segments {i} and {j} intersect near "
+                              f"({intersection_point[0][0]}, {intersection_point[1][0]})")
+    """
+    i and j are not the indices of the lat-lon arrays, but the indices of the path_segments list which should be the
+    same as the segment number. 
+    """
+
+    if verbose:
+        print("\nChecking for a more precise intersection...")
+    fine_intersections = []
+    intersection_indices = []
+
+    printed = False
+
+    print(f"\nNumber of rough intersections: {len(rough_intersections)}\n")
+    print("Checking for fine intersections...")
+
+    # check for fine intersections between the line segments that intersected roughly
+    for seg_pair in range(len(intersecting_segments)) :  # for each pair of intersecting segments
+        progress_bar(seg_pair, len(intersecting_segments))  # display a progress bar of segments checked
+
+        seg1 = intersecting_segments[seg_pair][0]  # segment 1
+        seg2 = intersecting_segments[seg_pair][1]
+
+        # translate segment numbers to indices in the lat-lon arrays
+        if seg1 == 0:
+            seg1_start = 0
+            seg1_end = seg_length
+        else:
+            seg1_start = seg1 * seg_length
+            seg1_end = seg1_start + seg_length
+        if seg2 == 0:
+            seg2_start = 0
+            seg2_end = seg_length
+        else:
+            seg2_start = seg2 * seg_length
+            seg2_end = seg2_start + seg_length
+        if verbose:
+            print(f"segment {seg1} start: {seg1_start}, segment {seg1} end: {seg1_end}")
+        if verbose:
+            print(f"segment {seg2} start: {seg2_start}, segment {seg2} end: {seg2_end}")
+
+        # create a list of line segments of length 1
+        # path_segments = []
+        # for i in range(seg1_start, seg1_end):
+        #     path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1])])
+        #     # append the point at index i and the point at the next index to the path_segments list
+        #
+        # for i in range(seg2_start, seg2_end):
+        #     path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1])])
+        #     # repeat for the second segment
+        #
+        # """
+        # in both for loops above, 'i' should represent actual indices in the lat-lon arrays
+        # """
+        #
+        # # check for intersections between the line segments
+        # for first_seg in range(len(path_segments)):  # compare each segment
+        #     for sec_seg in range(first_seg + 1, len(path_segments)):  # to every other segment after it
+        path_segments1 = []
+        path_segments2 = []
+        for i in range
+            """
+            TODO: 12Jun24 refactor this to have path_segments be two separate lists, one for each segment rather than having the
+            two segments that intersect just happen to be next to each other in the list. This will make the code more
+            readable and easier to debug.
+            """
+
+                if segments_intersect(path_segments[first_seg], path_segments[sec_seg]):  # if they intersect
+                    intersection_point = find_segment_intersection(path_segments[first_seg],
+                                                                    path_segments[sec_seg])
+                    # find the intersection point, returns [lat, lon] if there is an intersection and None if not
+                    if intersection_point:
+                        index1 = seg1_start + first_seg
+                        index2 = seg2_start + sec_seg
+                        # intersections.append([intersection_points])
+                        segment_ends.append([[path_segments[first_seg][0], path_segments[first_seg][1], index1],
+                                             [path_segments[sec_seg][0], path_segments[sec_seg][1], index2]])
+
+                        fine_intersections.append([intersection_point[0], intersection_point[1]])
+                        # fine_intersections are the first two points of the segment_ends list, i.e. two endpoints on
+                        # opposing legs of the X. segment_ends are all four points of the X.
+                        if verbose:
+                            print(f"Segments {seg1} and {seg2} intersect near indices "
+                                  f"{index1} and {index2}\nThis corresponds roughly to the "
+                                  f"lat-lon: ({fine_intersections[-1][0]}, {fine_intersections[-1][1]})")
+                        intersection_indices.append([index1, index2])
+
+
+    print(f"\nNumber of intersections: {len(fine_intersections)}\n")
+    if verbose:
+        print(f"Number of rough intersections: {len(rough_intersections)}")
+        print(f"Number of intersection indices: {len(intersection_indices)}")
+        # print(f"Indices: {intersect_indices}")
+        # for index in intersect_indices:
+        #     print(f"Index: {index}: ")
+    # for i in range(len(intersection_indices)):
+    #     print(f"Index {i}: \n"
+    #           f"indices: \t{intersection_indices[i]}\n"
+    #           f"lat-lon: \t({fine_intersections[i][0]}, {fine_intersections[i][1]})\n"
+    #           f"segment ends: \t{segment_ends[i]}\n"
+    #           f"lat-lon by layer: \t({layer.lat[intersection_indices[i][0]]}, {layer.lon[intersection_indices[i][0]]})")
+
+    print(f"Intersection at index {intersection_indices[0][0]} and {intersection_indices[0][1]}")
+    for i in range(len(intersection_indices)):
+        # TODO Error 1: correct for the fine intersection points being wrong for some reason
+        # (lat is close but lon is 6 degrees off in the 20181112_02 flight)
+        fine_intersections[i][0] = layer.lat[intersection_indices[i][0]]
+        fine_intersections[i][1] = layer.lon[intersection_indices[i][0]]
+
+    print(section_break + "\n")
+
+    return fine_intersections, intersection_indices, segment_ends
+
 
 def s_to_ms(x, pos):
     """
@@ -668,10 +1053,10 @@ def save_posit(posit):
     """
     # save posit to a pickle file
     print("Saving posit...")
-    print("--------------------")
+    print(section_break)
     pickle.dump(posit, open("posit.pickle", "wb"))
     print("posit.pickle saved in local directory of this python file.")
-    print("--------------------\n")
+    print(section_break + "\n")
 
 
 def plane_velocity_at_latlon(latlon1, latlon2, time1, time2):
@@ -741,162 +1126,6 @@ def latlon_dist(latlon1, latlon2):
     return dist
 
 
-def segments_intersect(segment1, segment2):
-    """
-    :param segment1: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
-    :param segment2: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
-    :return: True if the segments intersect, False if they do not
-    """
-    line1 = LineString(segment1)
-    line2 = LineString(segment2)
-    return line1.intersects(line2)
-
-
-def find_segment_intersection(segment1, segment2):
-    """
-    :param segment1: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
-    :param segment2: a list of two points, e.g. [(lat1, lon1), (lat2, lon2)]
-    :return: the point where the segments intersect, or None if they do not intersect
-    """
-    line1 = LineString(segment1)
-    line2 = LineString(segment2)
-    intersection = line1.intersection(line2)
-    # if the intersection is the end point of one of the segments, then it is not a crossover point
-    if intersection.geom_type == 'Point':
-        if intersection.xy[0][0] == segment1[0][0] or intersection.xy[1][0] == segment1[0][1]:
-            print("Intersection is the end point of segment 1 and is not a crossover point.")
-            return None
-        elif intersection.xy[0][0] == segment1[1][0] or intersection.xy[1][0] == segment1[1][1]:
-            return None
-        elif intersection.xy[0][0] == segment2[0][0] or intersection.xy[1][0] == segment2[0][1]:
-            return None
-        elif intersection.xy[0][0] == segment2[1][0] or intersection.xy[1][0] == segment2[1][1]:
-            return None
-        else:  # intersection is not an end point of either segment, it is a crossover point
-            return [tuple(intersection.xy[0]), tuple(intersection.xy[1])]
-    return None
-
-
-def cross_point(layer, seg_length, quiet=False):
-    """
-    :param seg_length:
-    :param layer: a Layer object
-    :param quiet: a boolean to suppress print statements
-    :return: the point where the lat-lon crosses over its own path.
-    purpose: layers[0].lat and layers[0].lon are numpy arrays of the latitudes and
-    longitudes for a flight path. It does not connect back to the beginning.
-    This function finds the point where the path crosses over itself.
-    The lat-lon of the crossover point will not be exactly the same as the
-    lat-lons in the arrays, but it will be very close.
-    """
-    verbose = not quiet
-    print("Finding crossover point...")
-    print("--------------------")
-    # create a list of line segments of length seg_length
-    path_segments = []
-    segment_ends = []
-    if verbose:
-        print(f"Dividing the path into segments of length {seg_length}...")
-    for i in range(0, len(layer.lat), seg_length):
-        if i + seg_length < len(layer.lat):
-            path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + seg_length], layer.lon[i + seg_length])])
-        else:
-            path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[-1], layer.lon[-1])])
-
-    if verbose:
-        print(f"Number of segments: {len(path_segments)}")
-    print("Checking for intersections...")
-    # check for intersections between the line segments
-    # TODO: implement loading bar
-    rough_intersections = []
-    intersecting_segments = []
-    for i in range(len(path_segments)):
-        for j in range(i + 1, len(path_segments)):
-            if segments_intersect(path_segments[i], path_segments[j]):
-                intersection_points = find_segment_intersection(path_segments[i], path_segments[j])
-                if intersection_points:
-                    rough_intersections.append([intersection_points[0][0], intersection_points[1][0]])
-                    intersecting_segments.append([i, j])
-                    if verbose:
-                        print(f"Segments {i} and {j} intersect near "
-                              f"({intersection_points[0][0]}, {intersection_points[1][0]})")
-
-    if verbose:
-        print("\nChecking for a more precise intersection...")
-    fine_intersections = []
-    intersection_indices = []
-
-    for i in range(len(intersecting_segments)):
-        seg1 = intersecting_segments[i][0]
-        seg2 = intersecting_segments[i][1]
-
-        # translate segment numbers to indices in the lat-lon arrays
-        if seg1 == 0:
-            seg1_start = 0
-            seg1_end = seg_length
-        else:
-            seg1_start = seg1 * seg_length
-            seg1_end = seg1_start + seg_length
-        if seg2 == 0:
-            seg2_start = 0
-            seg2_end = seg_length
-        else:
-            seg2_start = seg2 * seg_length
-            seg2_end = seg2_start + seg_length
-        if verbose:
-            print(f"segment {seg1} start: {seg1_start}, segment 1 end: {seg1_end}")
-        if verbose:
-            print(f"segment {seg2} start: {seg2_start}, segment 2 end: {seg2_end}")
-
-        # create a list of line segments of length 1
-        path_segments = []
-        for i in range(seg1_start, seg1_end):
-            path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1])])
-        for i in range(seg2_start, seg2_end):
-            path_segments.append([(layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1])])
-
-
-        # check for intersections between the line segments
-        for i in range(len(path_segments)):
-            for j in range(i + 1, len(path_segments)):
-                if segments_intersect(path_segments[i], path_segments[j]):
-                    intersection_points = find_segment_intersection(path_segments[i], path_segments[j])
-                    if intersection_points:
-                        # intersections.append([intersection_points])
-                        segment_ends.append([[path_segments[i][0], path_segments[i][1]], [path_segments[j][0], path_segments[j][1]]])
-                        fine_intersections.append([intersection_points[0][0], intersection_points[1][0]])
-                        index1 = seg1_start + i
-                        index2 = seg2_start + j
-                        if verbose:
-                            print(f"Segments {seg1} and {seg2} intersect near indices "
-                                  f"{index1} and {index2}\nThis corresponds roughly to the "
-                                  f"lat-lon: ({fine_intersections[-1][0]}, {fine_intersections[-1][1]})")
-                        intersection_indices.append([index1, index2])
-    print(f"Number of intersections: {len(fine_intersections)}")
-    if verbose:
-        print(f"Number of rough intersections: {len(rough_intersections)}")
-        print(f"Number of intersection indices: {len(intersection_indices)}")
-        # print(f"Indices: {intersection_indices}")
-        # for index in intersection_indices:
-        #     print(f"Index: {index}: ")
-    for i in range(len(intersection_indices)):
-        print(f"Index {i}: \n"
-              f"indices: \t{intersection_indices[i]}\n"
-              f"lat-lon: \t({fine_intersections[i][0]}, {fine_intersections[i][1]})\n"
-                f"segment ends: \t{segment_ends[i]}\n"
-              f"lat-lon by layer: \t({layer.lat[intersection_indices[i][0]]}, {layer.lon[intersection_indices[i][0]]})")
-
-    # print(f"Intersection at index {intersection_indices[0][0]} and {intersection_indices[0][1]}")
-    for i in range(len(intersection_indices)):
-        # TODO Error 1: correct for the fine intersection points being wrong for some reason
-            # (lat is close but lon is 6 degrees off in the 20181112_02 flight)
-        fine_intersections[i][0] = layer.lat[intersection_indices[i][0]]
-        fine_intersections[i][1] = layer.lon[intersection_indices[i][0]]
-    print("--------------------\n")
-
-    return fine_intersections, intersection_indices, segment_ends
-
-
 def twtt_at_point(read_layer, surface_layer, indices, corrected=True, quiet=False):
     """
     :param read_layer: the layer that is being compared to the surface layer
@@ -907,7 +1136,7 @@ def twtt_at_point(read_layer, surface_layer, indices, corrected=True, quiet=Fals
     """
     if not quiet:
         print("Finding twtt at crossover point...")
-        print("--------------------")
+        print(section_break)
         print(f"Number of crossover points: {len(indices)}"
               f"\nFirst crossover point is at indices {indices[0][0]} and {indices[0][1]}")
     twtt = []
@@ -928,7 +1157,7 @@ def twtt_at_point(read_layer, surface_layer, indices, corrected=True, quiet=Fals
         else:
             twtt.append([read_layer.twtt[index[0]], read_layer.twtt[index[1]]])
     if not quiet:
-        print("--------------------\n")
+        print(section_break + "\n")
     return twtt
 
 
@@ -943,7 +1172,7 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     """
     plt.figure(figsize=(16, 8), layout='constrained')
     print("Plotting layers...")
-    print("--------------------")
+    print(section_break)
     print("Adjusting for surface twtt...")
     for layer in layers:
         corrected_layer = layer.twtt - layers[0].twtt
@@ -969,11 +1198,11 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
         label=layers[1].layer_name + ' segment 2')
 
     # plot uncorrected twtt for each layer
-    # plt.plot(layers[0].twtt[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+    # plt.plot(layers[0].twtt[intersect_indices[0][0] - offset:intersect_indices[0][0] + offset],
     #             label=layers[0].layer_name)
-    # plt.plot(layers[1].twtt[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+    # plt.plot(layers[1].twtt[intersect_indices[0][0] - offset:intersect_indices[0][0] + offset],
     #             label=layers[1].layer_name + ' segment 1')
-    # plt.plot(layers[1].twtt[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
+    # plt.plot(layers[1].twtt[intersect_indices[0][1] - offset:intersect_indices[0][1] + offset],
     # label=layers[1].layer_name + ' segment 2')
 
     # invert the y-axis because the twtt increases with depth
@@ -1139,7 +1368,7 @@ def plot_map(layers, intersection_indices, intersection_points, iceflow_data, se
     plt.show()
 
     print("plotted map")
-    print("--------------------\n")
+    print(section_break + "\n")
 
 
 def plot_map_cartopy(layers, intersection_indices, intersection_points, iceflow_data, season, flight,  zoom=False, cross_index=0, filename=None):
@@ -1214,21 +1443,21 @@ def plot_map_cartopy(layers, intersection_indices, intersection_points, iceflow_
         plt.savefig(f"C:\\Users\\rj\Documents\\cresis_project\\screens\\{filename}_map.png", dpi=300)
 
     print("plotted map")
-    print("--------------------\n")
+    print(section_break + "\n")
 
 
-# def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom=False, refractive_index=1.77,
+# def plot_layers_at_cross(layers, intersect_indices, intersection_points, zoom=False, refractive_index=1.77,
 #                          cross_index=0):
 #     """
 #     :param layers: a list of Layer objects
-#     :param intersection_indices: a list of indices in the lat-lon arrays where the flight path
+#     :param intersect_indices: a list of indices in the lat-lon arrays where the flight path
 #     crosses over itself
 #     :param intersection_points: a list of lat-lon points where the flight path crosses over itself
 #     :return: nothing (plots the layers and the map)
 #     """
 #     plt.figure(figsize=(24, 12), layout='constrained')
 #     print("Plotting layers and map...")
-#     print("--------------------")
+#     print(section_break)
 #     print("Adjusting for surface twtt...")
 #     for layer in layers:
 #         corrected_layer = layer.twtt - layers[0].twtt
@@ -1244,31 +1473,31 @@ def plot_map_cartopy(layers, intersection_indices, intersection_points, iceflow_
 #     offset = 500
 #     # plot the corrected twtt for each layer
 #     plt.plot(
-#         layers[0].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[cross_index][0] + offset],
+#         layers[0].twtt_corrected[intersect_indices[0][0] - offset:intersect_indices[cross_index][0] + offset],
 #         label=layers[0].layer_name)
 #     plt.plot(
-#         layers[1].twtt_corrected[intersection_indices[0][0] - offset:intersection_indices[cross_index][0] + offset],
+#         layers[1].twtt_corrected[intersect_indices[0][0] - offset:intersect_indices[cross_index][0] + offset],
 #         label=layers[1].layer_name + ' segment 1')
 #     plt.plot(
-#         layers[1].twtt_corrected[intersection_indices[0][1] - offset:intersection_indices[cross_index][1] + offset],
+#         layers[1].twtt_corrected[intersect_indices[0][1] - offset:intersect_indices[cross_index][1] + offset],
 #         label=layers[1].layer_name + ' segment 2')
 #
 #     # plot uncorrected twtt for each layer
-#     # plt.plot(layers[0].twtt[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+#     # plt.plot(layers[0].twtt[intersect_indices[0][0] - offset:intersect_indices[0][0] + offset],
 #     #             label=layers[0].layer_name)
-#     # plt.plot(layers[1].twtt[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
+#     # plt.plot(layers[1].twtt[intersect_indices[0][0] - offset:intersect_indices[0][0] + offset],
 #     #             label=layers[1].layer_name + ' segment 1')
-#     # plt.plot(layers[1].twtt[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
+#     # plt.plot(layers[1].twtt[intersect_indices[0][1] - offset:intersect_indices[0][1] + offset],
 #     # label=layers[1].layer_name + ' segment 2')
 #
 #     # invert the y-axis because the twtt increases with depth
 #     plt.gca().invert_yaxis()
 #     # plot the crossover point on the plot
 #     plt.scatter(offset, twtt_at_point(layers[1], layers[0],
-#                                       intersection_indices, quiet=True)[0][0], color='red',
+#                                       intersect_indices, quiet=True)[0][0], color='red',
 #                 label='X Point 1')
 #     plt.scatter(offset, twtt_at_point(layers[1], layers[0],
-#                                       intersection_indices, quiet=True)[0][1], color='green',
+#                                       intersect_indices, quiet=True)[0][1], color='green',
 #                 label='X Point 2')
 #     # plot a line at the crossover point
 #     plt.axvline(x=offset, color='black', label='X Point', linestyle='--', linewidth=0.3)
@@ -1347,22 +1576,22 @@ def plot_map_cartopy(layers, intersection_indices, intersection_points, iceflow_
 #     # plot the flight path
 #     m.plot(layers[0].lon, layers[0].lat, latlon=True, color='lightgreen', linewidth=1)
 #     # plot the section of the flight path in the plot above
-#     m.plot(layers[0].lon[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset],
-#            layers[0].lat[intersection_indices[0][0] - offset:intersection_indices[0][0] + offset], latlon=True,
+#     m.plot(layers[0].lon[intersect_indices[0][0] - offset:intersect_indices[0][0] + offset],
+#            layers[0].lat[intersect_indices[0][0] - offset:intersect_indices[0][0] + offset], latlon=True,
 #            color='red', linewidth=1)
-#     m.plot(layers[0].lon[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset],
-#            layers[0].lat[intersection_indices[0][1] - offset:intersection_indices[0][1] + offset], latlon=True,
+#     m.plot(layers[0].lon[intersect_indices[0][1] - offset:intersect_indices[0][1] + offset],
+#            layers[0].lat[intersect_indices[0][1] - offset:intersect_indices[0][1] + offset], latlon=True,
 #            color='green', linewidth=1)
 #     # plot labels for the flight paths at their start points
 #     plt.text(
-#         m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[
+#         m(layers[0].lon[intersect_indices[0][0] - offset], layers[0].lat[intersect_indices[0][0] - offset])[
 #             0],
-#         m(layers[0].lon[intersection_indices[0][0] - offset], layers[0].lat[intersection_indices[0][0] - offset])[
+#         m(layers[0].lon[intersect_indices[0][0] - offset], layers[0].lat[intersect_indices[0][0] - offset])[
 #             1], '\nsegment 1', fontsize='smaller', fontweight='bold', ha='right', va='top', color='red')
 #     plt.text(
-#         m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[
+#         m(layers[0].lon[intersect_indices[0][1] - offset], layers[0].lat[intersect_indices[0][1] - offset])[
 #             0],
-#         m(layers[0].lon[intersection_indices[0][1] - offset], layers[0].lat[intersection_indices[0][1] - offset])[
+#         m(layers[0].lon[intersect_indices[0][1] - offset], layers[0].lat[intersect_indices[0][1] - offset])[
 #             1], '\nsegment 2', fontsize='smaller', fontweight='bold', ha='left', va='top', color='green')
 #     # plot the South Pole
 #     # m.scatter(0, -90, latlon=True, color='black', linewidth=1, label='South Pole')
@@ -1393,7 +1622,7 @@ def plot_map_cartopy(layers, intersection_indices, intersection_points, iceflow_
 #     plt.show()
 #
 #     print("plotted map")
-#     print("--------------------\n")
+#     print(section_break + "\n")
 #
 
 
@@ -1410,7 +1639,7 @@ def fancymap(layers, intersection_indices, intersection_points, zoom=False, refr
 
     plt.figure(figsize=(12, 12))
     print("Plotting layers and map...")
-    print("--------------------")
+    print(section_break)
     print("Adjusting for surface twtt...")
     for layer in layers:
         corrected_layer = layer.twtt - layers[0].twtt
@@ -1481,4 +1710,4 @@ def fancymap(layers, intersection_indices, intersection_points, zoom=False, refr
     plt.show()
 
     print("plotted map")
-    print("--------------------\n")
+    print(section_break + "\n")
