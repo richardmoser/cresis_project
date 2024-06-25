@@ -105,6 +105,10 @@ class Layer:
         self.twtt = twtt
         self.twtt_corrected = None
         self.type = type
+        self.x = []
+        self.y = []
+        self.xy_exists = False
+        self.depth = [] # depth of the layer based on the corrected twtt
 
 
 class Twtt_Posit:
