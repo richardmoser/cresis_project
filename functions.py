@@ -18,8 +18,41 @@ from project_classes import *
 # from iceflow_library import *
 import sys
 import time
+import csv
 
 section_break = "--------------------"
+# stdout text colors
+BLACK = '\033[30m'
+RED = '\033[31m'
+GREEN = '\033[32m'
+YELLOW = '\033[33m'  # orange on some systems
+BLUE = '\033[34m'
+MAGENTA = '\033[35m'
+CYAN = '\033[36m'
+LIGHT_GRAY = '\033[37m'
+DARK_GRAY = '\033[90m'
+BRIGHT_RED = '\033[91m'
+BRIGHT_GREEN = '\033[92m'
+BRIGHT_YELLOW = '\033[93m'
+BRIGHT_BLUE = '\033[94m'
+BRIGHT_MAGENTA = '\033[95m'
+BRIGHT_CYAN = '\033[96m'
+WHITE = '\033[97m'
+RESET = '\033[0m'  # called to return to standard terminal text color
+
+
+def debug_print(*args):
+    """
+    :param args: a list of arguments to print to the console
+    :return: nothing
+    """
+    """
+    This function prints the arguments to the console in a specific format.
+    """
+    print(BRIGHT_YELLOW + "DEBUG: ", end="")
+    for arg in args:
+        print(arg, end="")
+    print(RESET)
 
 def mat_pickler_layerData(season, flight, testing_mode=False, readout=False, save=True, plot_layer=False):
     print("Reading data files...")
@@ -258,6 +291,8 @@ def mat_pickler_h5py(season, flight, testing_mode=False, readout=False, save=Tru
     data_file = dir + 'Data_' + flight + '_'
     attributes_file = dir + 'layer_' + flight
     layers = layerize_h5py(data_file, attributes_file, dir, convert_xy)
+    if layers == True:
+        return True
 
     if readout:
         print(section_break, end="")
@@ -379,9 +414,12 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
     # create an empty list to store the layers
     layers = []
     files = os.listdir(dir)  # list of files in the directory
+    # TODO: shift to differentiating data vs layer based on file name. Data starts with "Data_" and layer starts with "layer_"
     startframe = '001'  # the first file number in the directory
     endframe = str(len(files) - 1).zfill(3)  # the number of files in the directory
+    # debug_print(f"attribute_file: {attribute_file}")
     attribute_mat = h5py.File(attribute_file + '.mat', 'r')
+    # print the keys in the attribute file
 
     decimal1 = attribute_mat[np.array([attribute_mat['lyr_name'][0][0]])[0]]
     decimal1_name = [decimal1[i][0] for i in range(len(decimal1))]  # a list of unicode values of the characters
@@ -393,14 +431,31 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
     layer1_name = name1
     layer2_name = name2
 
-    print(f"data_file: {data_file}")
+    # print(f"data_file: {data_file}")
     filled_data_file = data_file + str(1).zfill(3) + '.mat'
-    print(f"filled_data_file: {filled_data_file}")
-    f = h5py.File(filled_data_file, 'r')
+    # print(f"filled_data_file: {filled_data_file}")
+
+    h5py_works = True
+    # debug_print("made it to layerize_h5py", "passed the filled_data_file variable to h5py.File",
+                # "\n", "filled_data_file: ", filled_data_file, "\n")
+    try:
+        f = h5py.File(filled_data_file, 'r')
+    except:
+        debug_print(RED, f"Error: could not open {filled_data_file} with h5py, ignoring this file")
+        return True
+        # print(f"Error: could not open {filled_data_file} with h5py, attempting with sio.loadmat")
+        # try:
+        #     f = sio.loadmat(filled_data_file)
+        #     h5py_works = False
+        # except:
+        #     debug_print(RED, f"Error: could not open {filled_data_file} with sio.loadmat, exiting")
+        #     sys.exit(1)
+
+
     # f = h5py.File(data_file + str(3).zfill(3) + '.mat', 'r')  #
     # print the contents of the 'param' key
-    print(f"f['param']: {f['param']}")
-    print(f"f['param'].keys(): {list(f['param'].keys())}")
+    # print(f"f['param']: {f['param']}")
+    # print(f"f['param'].keys(): {list(f['param'].keys())}")
 
     filename = data_file + '001.mat'  # fill the data which doesn't change per point
     # param = []  # will need some debugging and we probably don't care about it
@@ -430,44 +485,82 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
     # print(f"f['lat'][:][0]: {f['lat'][:][0]}")
     # print(f"layer1 lon: {f['lon'][:]}")
 
-    print("\n\n")
+    # print("\n\n")
 
     # Load data from each file
-    for i in range(int(startframe), int(endframe) + 1):
-        filename = data_file + str(i).zfill(3) + '.mat'
-        with h5py.File(filename, 'r') as f:
-            gps_time.append(f['gps_time'][:])
-            layer1_id.append(f['id'][0])
-            layer2_id.append(f['id'][1])
-            lat.append(f['lat'][:].flatten())
-            lon.append(f['lon'][:].flatten())
+    if h5py_works:
+        for i in range(int(startframe), int(endframe) + 1):
+            filename = data_file + str(i).zfill(3) + '.mat'
+            # if h5py_works:
+            with h5py.File(filename, 'r') as f:
+                gps_time.append(f['gps_time'][:])
+                layer1_id.append(f['id'][0])
+                layer2_id.append(f['id'][1])
+                lat.append(f['lat'][:].flatten())
+                lon.append(f['lon'][:].flatten())
+                # param.append(f['param'])
+                # layer1_quality.append(f['quality'][0])
+                # layer2_quality.append(f['quality'][1])
+
+                # Extract twtt columns directly into layer1_twtt and layer2_twtt
+                twtt_data = f['twtt'][:]
+                layer1_twtt.extend(twtt_data[:, 0])
+                layer2_twtt.extend(twtt_data[:, 1])
+
+
+        # Convert lists to numpy arrays
+        # debug_print(f"gps_time: {gps_time}")
+
+        gps_time = np.concatenate(gps_time)
+        lat = np.concatenate(lat)
+        lon = np.concatenate(lon)
+        # param = np.concatenate(param)
+        layer1_twtt = np.array(layer1_twtt)
+        layer2_twtt = np.array(layer2_twtt)
+
+        # Convert lists to numpy arrays
+        layer1_id = np.array(layer1_id)
+        layer2_id = np.array(layer2_id)
+        layer1_quality = np.array(layer1_quality)
+        layer2_quality = np.array(layer2_quality)
+        layer1_type = np.array(layer1_type)
+        layer2_type = np.array(layer2_type)
+
+    else:
+        for i in range(int(startframe), int(endframe) + 1):
+            filename = data_file + str(i).zfill(3) + '.mat'
+
+            f = sio.loadmat(filename)
+            for time in f['gps_time']:
+                # debug_print(f"time: {time}")
+                gps_time.extend(time)
+
+            # gps_time.append(f['gps_time'][0])
+            layer1_id.append(f['id'][0][0])
+            # for id in f['id']:
+                # layer1_id.append(id[0][0])
+                # layer2_id.append(id[0][1])
+            layer2_id.append(f['id'][0][1])
+
+            lat.append(f['lat'])
+            lon.append(f['lon'])
+            # for lat in f['lat']:
+                # debug_print(f"lat: {lat}")
+                # lat.extend(lat[0])
+
             # param.append(f['param'])
             # layer1_quality.append(f['quality'][0])
             # layer2_quality.append(f['quality'][1])
 
             # Extract twtt columns directly into layer1_twtt and layer2_twtt
-            twtt_data = f['twtt'][:]
+            twtt_data = f['twtt']
             layer1_twtt.extend(twtt_data[:, 0])
             layer2_twtt.extend(twtt_data[:, 1])
+        # debug_print(RED, f"gps_time: {gps_time}")
+        debug_print(RED, f"lat: {lat}")
 
-    # Convert lists to numpy arrays
-    gps_time = np.concatenate(gps_time)
-    lat = np.concatenate(lat)
-    lon = np.concatenate(lon)
-    # param = np.concatenate(param)
-    layer1_twtt = np.array(layer1_twtt)
-    layer2_twtt = np.array(layer2_twtt)
-
-    # Convert lists to numpy arrays
-    layer1_id = np.array(layer1_id)
-    layer2_id = np.array(layer2_id)
-    layer1_quality = np.array(layer1_quality)
-    layer2_quality = np.array(layer2_quality)
-    layer1_type = np.array(layer1_type)
-    layer2_type = np.array(layer2_type)
-
-
-
+        gps_time = np.array(gps_time)
+        # debug_print(f"gps_time: {gps_time}")
 
     # create a layer object
     layer1 = Layer(layer1_name, gps_time, layer1_id, lat, lon, layer1_quality, layer1_twtt, layer1_type)
@@ -505,14 +598,18 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
     # append the layer to the layers list
     layers.append(layer1)
     layers.append(layer2)
-    print(f"layer1: {layer1.layer_name} number of points: {layer1.twtt.shape[0]}")
-    print(f"layer2: {layer2.layer_name} number of points: {layer2.twtt.shape[0]}")
+    # print(f"layer1: {layer1.layer_name} number of points: {layer1.twtt.shape[0]}")
+    # print(f"layer2: {layer2.layer_name} number of points: {layer2.twtt.shape[0]}")
 
     if not corrected:
         for layer in layers:
-            corrected_twtt = layer.twtt - layers[0].twtt  # normalize against the surface layer
-            # corrected_twtt = layer.twtt
-            layer.twtt_corrected = corrected_twtt
+            if h5py_works:
+                corrected_twtt = layer.twtt - layers[0].twtt  # normalize against the surface layer
+                # corrected_twtt = layer.twtt
+                layer.twtt_corrected = corrected_twtt
+            else:
+                corrected_twtt = np.array(layer.twtt) - np.array(layers[0].twtt)
+                layer.twtt_corrected = corrected_twtt
 
     return layers
 
@@ -816,23 +913,6 @@ def progress_bar(current, total, start_time=None, bar_length=20):
     :param bar_length: the length of the progress bar
     :return: none, but prints a progress bar to the console
     """
-    BLACK = '\033[30m'
-    RED = '\033[31m'
-    GREEN = '\033[32m'
-    YELLOW = '\033[33m'  # orange on some systems
-    BLUE = '\033[34m'
-    MAGENTA = '\033[35m'
-    CYAN = '\033[36m'
-    LIGHT_GRAY = '\033[37m'
-    DARK_GRAY = '\033[90m'
-    BRIGHT_RED = '\033[91m'
-    BRIGHT_GREEN = '\033[92m'
-    BRIGHT_YELLOW = '\033[93m'
-    BRIGHT_BLUE = '\033[94m'
-    BRIGHT_MAGENTA = '\033[95m'
-    BRIGHT_CYAN = '\033[96m'
-    WHITE = '\033[97m'
-    RESET = '\033[0m'  # called to return to standard terminal text color
 
     if start_time and current > 0:
         elapsed = time.time() - start_time
@@ -903,7 +983,7 @@ def find_segment_intersection(segment1, segment2)->list:
     return None
 
 
-def cross_point(layer, seg_length, quiet=False):
+def cross_point(layer, seg_length, quiet=False, bar_len=20):
     """
     :param seg_length:
     :param layer: a Layer object
@@ -915,6 +995,9 @@ def cross_point(layer, seg_length, quiet=False):
     The lat-lon of the crossover point will not be exactly the same as the
     lat-lons in the arrays, but it will be very close.
     """
+    # TODO: make the crossover finder into a function and have cross_point() take the number of refinements
+    # as an argument. Start with segments of seg_length and whittle down to segments of length 1 over the course of
+    # the chosen number of refinements.
     verbose = not quiet
     print("Finding crossover point...")
     print("--------------------")
@@ -939,11 +1022,10 @@ def cross_point(layer, seg_length, quiet=False):
 
     start_time = time.time()
     for i in range(len(path_segments)):  # for segment #index in the number of segments
-        progress_bar(i, len(path_segments), start_time)  # display a progress bar of segments checked
+        progress_bar(i, len(path_segments), start_time, bar_length=bar_len)  # display a progress bar of segments checked
         for j in range(i + 1, len(path_segments)):  # for every other segment after segment #index
             if segments_intersect(path_segments[i], path_segments[j]):  # if the segments intersect
-                intersection_point = find_segment_intersection(path_segments[i], path_segments[
-                    j])  # returns the intersection point [lat, lon] or None
+                intersection_point = find_segment_intersection(path_segments[i], path_segments[j])  # returns the intersection point [lat, lon] or None
                 if intersection_point:  # if there is an intersection
                     rough_intersections.append(intersection_point)
                     intersecting_segments.append([i, j])  # append
@@ -955,9 +1037,10 @@ def cross_point(layer, seg_length, quiet=False):
     fine_intersections = []
     intersection_indices = []
 
+    start_time = time.time()
     print("")
     for seg_pair in range(len(intersecting_segments)):
-        progress_bar(seg_pair, len(intersecting_segments), start_time)  # display a progress bar of segments checked
+        progress_bar(seg_pair, len(intersecting_segments), start_time, bar_length=bar_len)  # display a progress bar of segments checked
         seg1 = intersecting_segments[seg_pair][0]
         seg2 = intersecting_segments[seg_pair][1]
 
@@ -979,22 +1062,6 @@ def cross_point(layer, seg_length, quiet=False):
         if verbose:
             print(f"segment {seg2} start: {seg2_start}, segment 2 end: {seg2_end}")
 
-        # # create a list of line segments of length 1
-        # path_segments = []
-        # for index in range(seg1_start, seg1_end):
-        #     path_segments.append([(layer.lat[index], layer.lon[index]), (layer.lat[index + 1], layer.lon[index + 1])])
-        #
-        # for index in range(seg2_start, seg2_end):
-        #     path_segments.append([(layer.lat[index], layer.lon[index]), (layer.lat[index + 1], layer.lon[index + 1])])
-
-        # # check for intersections between the line segments
-        # for first_seg in range(len(path_segments)):  # compare each segment
-        #     for sec_seg in range(first_seg + 1, len(path_segments)):  # to every other segment after it
-        #         if segments_intersect(path_segments[first_seg], path_segments[sec_seg]):  # if they intersect
-        #             intersection_points = find_segment_intersection(path_segments[first_seg], path_segments[sec_seg])  # find the intersection
-        #             if intersection_points:
-        #                 index1 = seg1_start + first_seg
-        #                 index2 = seg2_start + sec_seg
 
         path_segments1 = []
         path_segments2 = []
@@ -1004,12 +1071,6 @@ def cross_point(layer, seg_length, quiet=False):
             path_segments1.append([(layer.lat[i_1], layer.lon[i_1]), (layer.lat[i_1 + 1], layer.lon[i_1 + 1])])
             path_segments2.append([(layer.lat[i_2], layer.lon[i_2]), (layer.lat[i_2 + 1], layer.lon[i_2 + 1])])
 
-            # for index in range(seg1_start, seg1_end):
-            #         path_segments1.append([(layer.lat[index], layer.lon[index]), (layer.lat[index + 1], layer.lon[index + 1])])
-            #
-            # # Construct path_segments2
-            # for index in range(seg2_start, seg2_end):
-            #     path_segments2.append([(layer.lat[index], layer.lon[index]), (layer.lat[index + 1], layer.lon[index + 1])])
 
             """
             TODO: 12Jun24 refactor this to have path_segments be two separate lists, one for each segment rather than having the
@@ -1078,7 +1139,10 @@ def cross_point(layer, seg_length, quiet=False):
         # TODO Error 1: correct for the fine intersection points being wrong for some reason
         # (lat is close but lon is 6 degrees off in the 20181112_02 flight)
         fine_intersections[i][0] = layer.lat[intersection_indices[i][0]]
-        fine_intersections[i][1] = layer.lon[intersection_indices[i][0]]
+        if layer.lon[intersection_indices[i][0]] < 0:
+            fine_intersections[i][1] = layer.lon[intersection_indices[i][0]] + 360
+        else:
+            fine_intersections[i][1] = layer.lon[intersection_indices[i][0]]
     print("--------------------\n")
 
     return fine_intersections, intersection_indices, segment_ends
@@ -1137,7 +1201,7 @@ def slope_around_index(layer, index, window_size=100):
     rise = twtt_to_depth(rise_twtt, 1.77)
     run = latlon_dist((layer.lat[index - window_size], layer.lon[index - window_size]),
                         (layer.lat[index + window_size], layer.lon[index + window_size]))
-    print(f"rise: {round(rise, 2)}m, run: {round(run, 2)}m")
+    # print(f"rise: {round(rise, 2)}m, run: {round(run, 2)}m")
     slope = rise / run
     return slope
 
@@ -1982,23 +2046,24 @@ def get_iceflow_data(printout=True):
 
 
 def x_to_index(x):
-    return 6223 + int(x / 450)
+    # return 6223 + int(x / 450)
+    return 6223 + int(x / 450) - 1
 
 
 def y_to_index(y):
-    return 6223 - int(y / 450)
+    # return 6223 - int(y / 450)
+    return 6223 - int(y / 450) - 2
 
 
 def index_to_x(x_index):
     return (x_index - 6223) * 450
-    # return (6223 - x_index) * 450
 
 
 def index_to_y(y_index):
     return (6223 - y_index) * 450
-    # return (y_index - 6223) * 450
 
-def xyindex_to_latlon(x_index, y_index, iceflow_data=get_iceflow_data(printout=False)):
+
+def xyindex_to_latlon(x_index, y_index):
     """
     This function is used to convert x and y coordinates to lat and lon coordinates.
     :param x: NOT THE X INDEX! the x coordinate to convert
@@ -2006,13 +2071,13 @@ def xyindex_to_latlon(x_index, y_index, iceflow_data=get_iceflow_data(printout=F
     :param iceflow_data: the iceflow data in a readable format
     :return: the lat and lon coordinates
     """
-    # TODO: WHY ARE YOU THE WAY YOU ARE???
     x = index_to_x(x_index)
     y = index_to_y(y_index)
-
     transformer = Transformer.from_crs("EPSG:3031", "EPSG:4326", accuracy=10)
     # transform Antarctic Polar Stereographic to standard lat-lon
     point = transformer.transform(x, y, errcheck=True)
+    if point[1] < 0:
+        point = (point[0], 360 + point[1])  # this is to make the longitude positive
     return point
 
 
@@ -2024,11 +2089,11 @@ def latlon_to_xy(lat, lon):
     :return: the x and y coordinates
     # TODO: WHY ARE YOU THE WAY YOU ARE???
     """
+    # debug_print(f"latlon_to_xy(): {lat}, {lon}")
     transformer = Transformer.from_crs("EPSG:4326", "EPSG:3031", accuracy=10)
     # transform standard lat-lon to Antarctic Polar Stereographic
-    # point = transformer.transform(lat, lon, errcheck=True)
     point = transformer.transform(lat, lon, errcheck=True)
-    point = (point[1], point[0])
+
     return point
 
 
@@ -2039,9 +2104,14 @@ def xy_to_latlon(x, y):
     :param y: the y coordinate to convert
     :return: the lat and lon coordinates
     """
+    # debug_print(f"xy_to_latlon(): {x}, {y}")
     transformer = Transformer.from_crs("EPSG:3031", "EPSG:4326", accuracy=10)
     # transform Antarctic Polar Stereographic to standard lat-lon
     point = transformer.transform(x, y, errcheck=True)
+    if point[1] < 0:
+        point = [point[0], 360 + point[1]]
+    else:
+        point = [point[0], point[1]]
     return point
 
 
@@ -2180,49 +2250,6 @@ def generate_spiral_indices(center_x, center_y, max_radius):
         yield x, y
 
 
-def delete_once_fixed_xy_to_nearest_unmasked_index(x, y, iceflow_data, max_radius=10, printout=False):
-    """
-    Find the nearest x and y value in the iceflow data to an input x and y value.
-    :param x: the x value to find the nearest x value to
-    :param y: the y value to find the nearest y value to
-    :param iceflow_data: the iceflow data
-    :param max_radius: the maximum radius to search for an unmasked point
-    :param printout: whether or not to print the nearest unmasked point
-    :return: the nearest unmasked x and y indices in the iceflow data to an input x and y value
-    """
-    x = x_to_index(x)  # convert the x value to an index
-    y = y_to_index(y)  # convert the y value to an index
-        # x,y → indices
-    unmasked = []  # a list to store the unmasked x and y values
-    for x_iterator in range(x - max_radius, x + max_radius):  # iterate through the x values within the max_radius
-        for y_iterator in range(y - max_radius, y + max_radius):  # iterate through the y values within the max_radius
-            if (
-                    0 <= x_iterator < iceflow_data[2].shape[0]  # if the x index is within the bounds of the iceflow data
-                    and 0 <= y_iterator < iceflow_data[2].shape[1]  # if the y index is within the bounds of the iceflow data
-                    and not np.ma.is_masked(iceflow_data[2][x_iterator][y_iterator])  # if the x value is unmasked
-                    and not np.ma.is_masked(iceflow_data[3][x_iterator][y_iterator])  # if the y value is unmasked
-            ):  # if the x and y values are unmasked
-                unmasked.append((x_iterator, y_iterator))  # append the x and y values to the unmasked list
-            if printout and not np.ma.is_masked(iceflow_data[2][x_iterator][y_iterator]):
-                print(f"unmasked x: {x_iterator}, unmasked y: {y_iterator}")
-                print(
-                    f"unmasked lat: {iceflow_data[4][x_iterator][y_iterator]}, unmasked lon: {iceflow_data[5][x_iterator][y_iterator]}")
-                print(
-                    f"unmasked flow: {iceflow_data[2][x_iterator][y_iterator]}, {iceflow_data[3][x_iterator][y_iterator]}")
-    # find the xy pair with the minimum distance from the input x and y
-    min_distance = 100  # a starting value; just needs to be larger than the actual minimum distance
-    min_x_index = None
-    min_y_index = None
-    for x_iterator, y_iterator in unmasked:
-        distance = math.sqrt((x - x_iterator) ** 2 + (y - y_iterator) ** 2)
-        if distance < min_distance:
-            min_distance = distance
-            min_x_index = x_iterator
-            min_y_index = y_iterator
-
-    # print(f"latlon of nearest unmasked: {iceflow_data[4][min_x][min_y], iceflow_data[5][min_x][min_y]}")
-    return min_x_index, min_y_index
-
 
 def xy_to_nearest_unmasked_index(x, y, iceflow_data, max_radius=10, printout=False):
     """
@@ -2265,7 +2292,7 @@ def xy_to_nearest_unmasked_index(x, y, iceflow_data, max_radius=10, printout=Fal
             min_y_index = y_index_iterator
             # technically this isn't distance as much as it is how close the indices are to each other
 
-    # print(f"latlon of nearest unmasked: {iceflow_data[4][min_x][min_y], iceflow_data[5][min_x][min_y]}")
+    print(f"latlon of nearest unmasked: {iceflow_data[4][min_x][min_y], iceflow_data[5][min_x][min_y]}")
     return min_x_index, min_y_index
 
 
@@ -2282,7 +2309,16 @@ def latlon_to_nearest_unmasked_index(lat, lon, iceflow_data, max_radius=10, prin
     x, y = latlon_to_xy(lat, lon)  # convert the x value to an index
     x_index = x_to_index(x)  # convert the x value to an index
     y_index = y_to_index(y)  # convert the y value to an index
+    # print(f"checking indices: {x_index, y_index}")
         # x,y → indices
+    # if the calculated indices are valid, return them. If they are masked, procede down the search function.
+    if (
+            not np.ma.is_masked(iceflow_data[2][x_index][y_index])  # if the x velocity is unmasked
+            and not np.ma.is_masked(iceflow_data[3][x_index][y_index])  # if the y velocity is unmasked
+        ):
+        print("The calculated indices are unmasked, no need to search")
+        return x_index, y_index
+
     unmasked = []  # a list to store the unmasked x and y values
     for x_index_iterator in range(x_index - max_radius, x_index + max_radius):  # iterate through the x indices within the max_radius
         for y_index_iterator in range(y_index - max_radius, y_index + max_radius):  # iterate through the y indices within the max_radius
@@ -2300,54 +2336,26 @@ def latlon_to_nearest_unmasked_index(lat, lon, iceflow_data, max_radius=10, prin
                 print(
                     f"unmasked flow: {iceflow_data[2][x_index_iterator][y_index_iterator]}, {iceflow_data[3][x_index_iterator][y_index_iterator]}")
     # find the xy index pair with the minimum distance from the input x and y
-    min_distance = 100  # a starting value; just needs to be larger than the actual minimum distance
+    min_distance = 10000  # a starting value; just needs to be larger than the actual minimum distance
     min_x_index = None
     min_y_index = None
     for x_index_iterator, y_index_iterator in unmasked:
-        # distance = math.sqrt((x_index - x_index_iterator) ** 2 + (y_index - y_index_iterator) ** 2)
-        x_index_lat, y_index_lat = xyindex_to_latlon(x_index_iterator, y_index_iterator, iceflow_data)
-        distance = math.sqrt((lat - x_index_lat) ** 2 + (lon - y_index_lat) ** 2)
-        # distance
+        # x_index_lat_lon, y_index_lat_lon = xyindex_to_latlon(x_index_iterator, y_index_iterator)
+        # x_index_lat_lon = iceflow_data[4][x_index_iterator][y_index_iterator]
+        # y_index_lat_lon = iceflow_data[5][x_index_iterator][y_index_iterator]
+        # distance = math.sqrt((lat - x_index_lat_lon) ** 2 + (lon - y_index_lat_lon) ** 2)
+        distance = math.sqrt((x_index - x_index_iterator) ** 2 + (y_index - y_index_iterator) ** 2)
+            # this has proven to be the best way to calculate the distance. The commented out methods have been tested
+            # and result in indices off by 3-10 indices in the x and y directions while this is always 1-2 indices off.
+                # best practice is probably to use the calculated indices and call this function if they are masked.
+        # print(f"indices: {x_index_iterator, y_index_iterator}, distance: {distance}, less than min of {min_distance}: {distance < min_distance}")
         if distance < min_distance:
             min_distance = distance
             min_x_index = x_index_iterator
             min_y_index = y_index_iterator
 
+    return min_x_index, min_y_index
 
-    # print(f"latlon of nearest unmasked: {iceflow_data[4][min_x][min_y], iceflow_data[5][min_x][min_y]}")
-    # return min_x_index, min_y_index
-    return min_y_index, min_x_index
-
-# def depracated_find_nearest_unmasked_x_and_y(x, y, iceflow_data, max_radius=100):
-#     # TODO: fix this because it doesn't seem to be returning good data
-#     # or abandon it because xy_to_nearest_unmasked_index() seems to work
-#     """
-#     Find the nearest x and y value in the iceflow data to an input x and y value.
-#     If the ice velocity is masked at that point, it will return the next nearest point that is not masked.
-#     """
-#
-#     # x_index_base = (np.abs(iceflow_data[0] - x)).argmin()
-#     # y_index_base = (np.abs(iceflow_data[1] - y)).argmin()
-#     x_index = x_to_index(x)
-#     y_index = y_to_index(y)
-#     x_index_base = (np.abs(iceflow_data[0] - x_index)).argmin()
-#     y_index_base = (np.abs(iceflow_data[1] - y_index)).argmin()
-#
-#     for x_offset, y_offset in generate_spiral_indices(0, 0, max_radius=max_radius):
-#         # for x_offset, y_offset in generate_spiral_indices(x_index_base, y_index_base, max_radius=max_radius):
-#         x_index = x_index_base + x_offset
-#         y_index = y_index_base + y_offset
-#
-#         if (
-#                 0 <= x_index < iceflow_data[2].shape[0]
-#                 and 0 <= y_index < iceflow_data[2].shape[1]
-#                 and not np.ma.is_masked(iceflow_data[2][x_index][y_index])
-#                 and not np.ma.is_masked(iceflow_data[3][x_index][y_index])
-#         ):
-#             return x_index, y_index
-#
-#     # Return the original indices if no unmasked point is found in the search area
-#     return x_index_base, y_index_base
 
 
 def nearest_flow_to_latlon(lat, lon, iceflow_data, print_point=False):
