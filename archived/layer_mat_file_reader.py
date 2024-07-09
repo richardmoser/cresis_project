@@ -62,12 +62,12 @@ def main():
 #     endframe = str(len(files) - 1).zfill(3)
 #
 #     # load an array of mat files
-#     data_mat = np.array([sio.loadmat(dir + segment_data_file + str(i).zfill(3) + '.mat')
-#                          for i in range(int(startframe), int(endframe)+1)])
+#     data_mat = np.array([sio.loadmat(dir + segment_data_file + str(index).zfill(3) + '.mat')
+#                          for index in range(int(startframe), int(endframe)+1)])
 #     attribute_mat = sio.loadmat(dir + layer_attributes_file)
 #
-#     # data_mat = np.array([mat73.loadmat(dir + segment_data_file + str(i).zfill(3) + '.mat')
-#     #                         for i in range(int(startframe), int(endframe)+1)])
+#     # data_mat = np.array([mat73.loadmat(dir + segment_data_file + str(index).zfill(3) + '.mat')
+#     #                         for index in range(int(startframe), int(endframe)+1)])
 #     # attribute_mat = mat73.loadmat(dir + layer_attributes_file)
 #
 #

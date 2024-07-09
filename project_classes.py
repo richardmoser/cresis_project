@@ -105,6 +105,10 @@ class Layer:
         self.twtt = twtt
         self.twtt_corrected = None
         self.type = type
+        self.x = []
+        self.y = []
+        self.xy_exists = False
+        self.depth = [] # depth of the layer based on the corrected twtt
 
 
 class Twtt_Posit:
@@ -129,3 +133,46 @@ class Twtt_Posit:
         self.season = season
         self.flight = flight
         self.indices = indices
+
+class Cross:
+    def __init__(self):
+        self.flow_xy = []
+        self.flow_heading_full = []
+        self.flow_heading = []
+        self.plane_heading_1 = []
+        self.plane_heading_2 = []
+        self.angle = []
+        self.twtt = None
+        self.delta_twtt = []
+        self.depth1 = []
+        self.depth2 = []
+        self.depth_ave = []
+
+    def to_dict(self):
+        return {
+            'flow_xy': self.flow_xy,
+            'flow_heading_full': self.flow_heading_full,
+            'flow_heading': self.flow_heading,
+            'plane_heading_1': self.plane_heading_1,
+            'plane_heading_2': self.plane_heading_2,
+            'angle': self.angle,
+            'twtt': self.twtt,
+            'delta_twtt': self.delta_twtt,
+            'depth1': self.depth1,
+            'depth2': self.depth2,
+            'depth_ave': self.depth_ave
+        }
+
+    def __str__(self):
+        str = f"flow_xy: {self.flow_xy}\n" \
+              f"flow_heading_full: {self.flow_heading_full}\n" \
+              f"flow_heading: {self.flow_heading}\n" \
+              f"plane_heading_1: {self.plane_heading_1}\n" \
+              f"plane_heading_2: {self.plane_heading_2}\n" \
+              f"angle: {self.angle}\n" \
+              f"twtt: {self.twtt}\n" \
+              f"delta_twtt: {self.delta_twtt}\n" \
+              f"depth1: {self.depth1}\n" \
+              f"depth2: {self.depth2}\n" \
+              f"depth_ave: {self.depth_ave}"
+        return str
