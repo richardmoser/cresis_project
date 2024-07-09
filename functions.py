@@ -40,6 +40,7 @@ BRIGHT_CYAN = '\033[96m'
 WHITE = '\033[97m'
 RESET = '\033[0m'  # called to return to standard terminal text color
 
+username = os.getlogin()
 
 def debug_print(*args):
     """
@@ -72,18 +73,18 @@ def mat_pickler_layerData(season, flight, testing_mode=False, readout=False, sav
         #TODO: refactor this into a try except block, maybe upstream of this function where it is called
 
         # if layer:
-        #     dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
+        #     dir = ('C:\\Users\\moser\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
         #     # leaving because it might actually be good. the below line works for 2018_Antarctica_DC8 at least as it
         #     # has the CSARP_layerData folder instead of CSARP_layer.
         # if layerData:
-        dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layerData\\' + flight + '\\')
+        dir = ('C:\\Users\\moser\\Documents\\cresis\\rds\\' + season + '\\CSARP_layerData\\' + flight + '\\')
         # contains all of the actual data such as twtt, lat, lon, etc.
         # contains the attributes of the layer such as name, param, etc.
         print(f"layer_attributes_file: {layer_attributes_file}")
         # contains the attributes of the layer such as name, param, etc.
 
-        # dir = C:\Users\rj\Documents\cresis\rds\2018_Antarctica_DC8\CSARP_layer\20181112_02
-        # dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181112_02\\')
+        # dir = C:\Users\moser\\Documents\cresis\rds\2018_Antarctica_DC8\CSARP_layer\20181112_02
+        # dir = ('C:\\Users\\moser\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181112_02\\')
         # segment_data_file = 'Data_20181112_02_'
         # layer_attributes_file = 'layer_20181112_02.mat'
 
@@ -140,8 +141,8 @@ def mat_pickler_layerData(season, flight, testing_mode=False, readout=False, sav
         # print(f"Current directory: {}")
         file_name = "layer_export" + layer_attributes_file[5:-4] + ".pickle"
         pickle.dump(layers, open(file_name, "wb"))
-        print(file_name, " saved in local directory of this python file.")
-        print(section_break + "\n")
+        # print(file_name, " saved in local directory of this python file.")
+        # print(section_break + "\n")
 
     if plot_layer:
         # plot the layers
@@ -173,7 +174,7 @@ def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=Tr
 
     # if there is only one segment data file, return nothing
     # TODO: no that is not how that works, 2018DC8 simply has fewer mat files per flight for some reason
-    # if not os.path.exists('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\' + segment_data_file + '002.mat'):
+    # if not os.path.exists('C:\\Users\\moser\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\' + segment_data_file + '002.mat'):
     #     print(f"Not all data is downloaded for flight {flight}.")
     #     return
 
@@ -188,7 +189,7 @@ def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=Tr
         # contains the attributes of the layer such as name, param, etc.
     else:
         #TODO: refactor this into a try except block, maybe upstream of this function where it is called
-            dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
+            dir = ('C:\\Users\\moser\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
         #     # leaving because it might actually be good. the below line works for 2018_Antarctica_DC8 at least as it
         #     # has the CSARP_layerData folder instead of CSARP_layer.
 
@@ -197,8 +198,8 @@ def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=Tr
             print(f"layer_attributes_file: {layer_attributes_file}")
         # contains the attributes of the layer such as name, param, etc.
 
-        # dir = C:\Users\rj\Documents\cresis\rds\2018_Antarctica_DC8\CSARP_layer\20181112_02
-        # dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181112_02\\')
+        # dir = C:\Users\moser\\Documents\cresis\rds\2018_Antarctica_DC8\CSARP_layer\20181112_02
+        # dir = ('C:\\Users\\moser\\Documents\\cresis\\rds\\2018_Antarctica_DC8\\CSARP_layer\\20181112_02\\')
         # segment_data_file = 'Data_20181112_02_'
         # layer_attributes_file = 'layer_20181112_02.mat'
 
@@ -255,8 +256,8 @@ def mat_pickler_layer(season, flight, testing_mode=False, readout=False, save=Tr
         # print(f"Current directory: {}")
         file_name = "layer_export" + layer_attributes_file[5:-4] + ".pickle"
         pickle.dump(layers, open(file_name, "wb"))
-        print(file_name, " saved in local directory of this python file.")
-        print(section_break + "\n")
+        # print(file_name, " saved in local directory of this python file.")
+        # print(section_break + "\n")
 
     if plot_layer:
         # plot the layers
@@ -286,7 +287,7 @@ def mat_pickler_h5py(season, flight, testing_mode=False, readout=False, save=Tru
         dir = os.getcwd() + '\\test_data\\' + flight + '\\'
     else:
         # TODO: refactor this into a try except block, maybe upstream of this function where it is called
-        dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
+        dir = ('C:\\Users\\moser\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
 
     data_file = dir + 'Data_' + flight + '_'
     attributes_file = dir + 'layer_' + flight
@@ -312,8 +313,8 @@ def mat_pickler_h5py(season, flight, testing_mode=False, readout=False, save=Tru
         # file_name = directory + "layer_export" + attributes_file[5:-4] + ".pickle"
         file_name = directory + "layer_export_" + flight + ".pickle"
         pickle.dump(layers, open(file_name, "wb"))
-        print(file_name, " saved in local directory of this python file.")
-        print(section_break + "\n")
+        # print(file_name, " saved in local directory of this python file.")
+        # print(section_break + "\n")
 
     if plot_layer:
         # plot the layers
@@ -440,16 +441,18 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
                 # "\n", "filled_data_file: ", filled_data_file, "\n")
     try:
         f = h5py.File(filled_data_file, 'r')
+        debug_print(BRIGHT_GREEN, f"Opened {filled_data_file} with h5py")
     except:
-        debug_print(RED, f"Error: could not open {filled_data_file} with h5py, ignoring this file")
-        return True
+        # debug_print(RED, f"Error: could not open {filled_data_file} with h5py, ignoring this file")
+        # return True
         # print(f"Error: could not open {filled_data_file} with h5py, attempting with sio.loadmat")
-        # try:
-        #     f = sio.loadmat(filled_data_file)
-        #     h5py_works = False
-        # except:
-        #     debug_print(RED, f"Error: could not open {filled_data_file} with sio.loadmat, exiting")
-        #     sys.exit(1)
+        try:
+            f = sio.loadmat(filled_data_file)
+            h5py_works = False
+        except:
+            debug_print(RED, f"Error: could not open {filled_data_file} with sio.loadmat, exiting")
+            # sys.exit(1)
+            return True
 
 
     # f = h5py.File(data_file + str(3).zfill(3) + '.mat', 'r')  #
@@ -477,7 +480,7 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
     lon = []
     layer1_twtt = []
     layer2_twtt = []
-    #
+
     # print("\n\nlayerize_h5py debug:")
     # print(f"f['lat'][:]: {f['lat'][:]}")
     # print(f"f['lat'][:]: {f['lat'][:].flatten()[0]}")
@@ -486,7 +489,7 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
     # print(f"layer1 lon: {f['lon'][:]}")
 
     # print("\n\n")
-
+    already_printed = False
     # Load data from each file
     if h5py_works:
         for i in range(int(startframe), int(endframe) + 1):
@@ -531,13 +534,17 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
             filename = data_file + str(i).zfill(3) + '.mat'
 
             f = sio.loadmat(filename)
+            # print the keys in f
+            if already_printed:
+                print(f.keys())
+                already_printed = True
             for time in f['gps_time']:
                 # debug_print(f"time: {time}")
                 gps_time.extend(time)
 
             # gps_time.append(f['gps_time'][0])
             layer1_id.append(f['id'][0][0])
-            # for id in f['id']:
+            # for id in f['id']:d
                 # layer1_id.append(id[0][0])
                 # layer2_id.append(id[0][1])
             layer2_id.append(f['id'][0][1])
@@ -545,7 +552,9 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
             lat.append(f['lat'])
             lon.append(f['lon'])
             # for lat in f['lat']:
-                # debug_print(f"lat: {lat}")
+            # debug_print(f"lat: {lat[0:3]}")
+            # debug_print the shape of lat
+            # debug_print(f"lat shape: {np.array(lat).shape}")
                 # lat.extend(lat[0])
 
             # param.append(f['param'])
@@ -557,7 +566,7 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
             layer1_twtt.extend(twtt_data[:, 0])
             layer2_twtt.extend(twtt_data[:, 1])
         # debug_print(RED, f"gps_time: {gps_time}")
-        debug_print(RED, f"lat: {lat}")
+        # debug_print(RED, f"lat: {lat}")
 
         gps_time = np.array(gps_time)
         # debug_print(f"gps_time: {gps_time}")
@@ -669,8 +678,8 @@ def full_season_layerize(season, testing_mode=False, readout=False, save=True, p
     print("Layerizing full season...")
     print(section_break)
     # list the flights in the season
-    # dir = 'C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layerData\\'
-    dir = 'C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\'
+    # dir = 'C:\\Users\\moser\\Documents\\cresis\\rds\\' + season + '\\CSARP_layerData\\'
+    dir = 'C:\\Users\\moser\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\'
     flights = os.listdir(dir)
     print(f"Flights in {season}: {flights}")
     print(section_break + "\n")
@@ -827,7 +836,7 @@ def layer_to_csv(season, flight):
     :return: none, save the data to a csv file
     """
     """Find the Mat"""
-    dir = ('C:\\Users\\rj\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
+    dir = ('C:\\Users\\moser\\Documents\\cresis\\rds\\' + season + '\\CSARP_layer\\' + flight + '\\')
     data_file = dir + 'Data_' + flight + '_'
     attributes_file = dir + 'layer_' + flight + '.mat'
 
@@ -896,7 +905,7 @@ def layer_to_csv(season, flight):
     #
     # print(f"size of data: {len(rows)}")
     #
-    filename = 'C:\\Users\\rj\\Documents\\cresis_project\\csv_jar\\' + flight + '.csv'
+    filename = 'C:\\Users\\moser\\Desktop\\cresis_project\\csv_jar\\' + flight + '.csv'
     with open(filename, 'w') as f:
         # using csv.writer method from CSV package
         write = csv.writer(f)
@@ -1286,8 +1295,8 @@ def save_posit(posit):
     print("Saving posit...")
     print(section_break)
     pickle.dump(posit, open("posit.pickle", "wb"))
-    print("posit.pickle saved in local directory of this python file.")
-    print(section_break + "\n")
+    # print("posit.pickle saved in local directory of this python file.")
+    # print(section_break + "\n")
 
 
 def plane_velocity_at_latlon(latlon1, latlon2, time1, time2):
@@ -1495,7 +1504,7 @@ def plot_layers_at_cross(layers, intersection_indices, intersection_points, zoom
     plt.title("Adjusted Two Way Travel Time vs Index")
     if filename:
         # plt.savefig(f"{filename}.png", dpi=250)
-        plt.savefig(f"C:\\Users\\rj\Documents\\cresis_project\\screens\\{filename}_layers.png", dpi=250)
+        plt.savefig(f"C:\\Users\\moser\\Desktop\\cresis_project\\screens\\{filename}_layers.png", dpi=250)
 
     plt.show()
 
@@ -1595,7 +1604,7 @@ def plot_map(layers, intersection_indices, intersection_points, iceflow_data, se
     # save the plot
     if filename:
         # plt.savefig(f"{filename}.png", dpi=250)
-        plt.savefig(f"C:\\Users\\rj\Documents\\cresis_project\\screens\\{filename}_map.png", dpi=250)
+        plt.savefig(f"C:\\Users\\moser\\Desktop\\cresis_project\\screens\\{filename}_map.png", dpi=250)
 
     plt.show()
 
@@ -1672,7 +1681,7 @@ def plot_map_cartopy(layers, intersection_indices, intersection_points, iceflow_
     # save the plot
     if filename:
         # plt.savefig(f"{filename}.png", dpi=250)
-        plt.savefig(f"C:\\Users\\rj\Documents\\cresis_project\\screens\\{filename}_map.png", dpi=300)
+        plt.savefig(f"C:\\Users\\moser\\Desktop\\cresis_project\\screens\\{filename}_map.png", dpi=300)
 
     print("plotted map")
     print(section_break + "\n")
@@ -1972,7 +1981,7 @@ def iceflow_data_file_loader():
     that is used to store multidimensional data. This file contains the ice flow velocity data for Antarctica.
     :return: the iceflow data in a readable format
     """
-    iceflow_file = Dataset("C:\\Users\\rj\\Documents\\cresis\\iceflow\\antarctic_ice_vel_phase_map_v01.nc", "r")
+    iceflow_file = Dataset("C:\\Users\\moser\\Documents\\cresis\\iceflow\\antarctic_ice_vel_phase_map_v01.nc", "r")
 
     # print(iceflow_file.variables.keys())
     # print()
@@ -2001,9 +2010,9 @@ def iceflow_saver():
     """
     x, y, velocity_x, velocity_y, latitude, longitude = iceflow_data_file_loader()
     iceflow_data = [x, y, velocity_x, velocity_y, latitude, longitude]
-
+    debug_print(BRIGHT_YELLOW, "Saving iceflow data to pickle file...")
     # pickle_file_name = "iceflow_data.pickle"
-    pickle_file_name = "C:\\Users\\rj\\Documents\\cresis_project\\iceflow\\iceflow_data.pickle"
+    pickle_file_name = "C:\\Users\\moser\\Desktop\\cresis_project\\iceflow\\iceflow_data.pickle"
     pickle_file = open(pickle_file_name, "wb")
     pickle.dump(iceflow_data, pickle_file)
     pickle_file.close()

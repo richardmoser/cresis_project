@@ -35,7 +35,7 @@ flight = "20221212_01"
 flight = "20221228_01"
 
 # file_name = "layer_export_" + flight + ".pickle"
-dir = "C:\\Users\\rj\\Documents\\cresis_project\\pickle_jar\\layer_export_"
+dir = "C:\\Users\\moser\\Desktop\\cresis_project\\pickle_jar\\layer_export_"
 file_name = dir + flight + ".pickle"
 testing = False
 #%%
@@ -52,7 +52,7 @@ if whole_season:
     file_name = dir + season + ".pickle"
     # print(f"filename: {filename}")
     if not os.path.isfile(file_name):  # if the file does not exist
-        debug_print(BRIGHT_RED, f"File {filename} does not exist. You should make it...")
+        debug_print(BRIGHT_RED, f"File {file_name} does not exist. You should make it...")
     else:
         layers = read_layers(file_name)
         print(f"File {file_name} loaded.")
@@ -72,13 +72,13 @@ else:
 #%% md
 ### read in the iceflow data from the iceflow data files and save them to a pickle file
 #%%
-if not os.path.isfile("C:\\Users\\rj\\Documents\\cresis_project\\iceflow\\iceflow_data.pickle"):  # if the file does not exist
+if not os.path.isfile("C:\\Users\\moser\\Desktop\\cresis_project\\iceflow\\iceflow_data.pickle"):  # if the file does not exist
     print("The iceflow data pickle file was not found. Creating a new one...")
     filename = iceflow_saver()
     iceflow_data = iceflow_loader(filename)
     print("The iceflow data pickle file was successfully created.")
 # try:
-iceflow_data = iceflow_loader("C:\\Users\\rj\\Documents\\cresis_project\\iceflow\\iceflow_data.pickle")
+iceflow_data = iceflow_loader("C:\\Users\\moser\\Desktop\\cresis_project\\iceflow\\iceflow_data.pickle")
 print("The iceflow data pickle file was found and loaded.")
 
 x = iceflow_data[0]
@@ -92,7 +92,7 @@ print("iceflow data loaded")
 # if the file at filename exists, read in the intersect_indices and intersection_points from the pickle file
 # otherwise, find the intersect_indices and intersection_points and save them to a pickle file
 force_redo_intersections = False
-filename = f"C:\\Users\\rj\\Documents\\cresis_project\\pickle_jar\\{season}_crossover_points.pickle"
+filename = f"C:\\Users\\moser\\Desktop\\cresis_project\\pickle_jar\\{season}_crossover_points.pickle"
 if not os.path.isfile(filename) or force_redo_intersections:  # if the file does not exist
     print(f"File {filename} does not exist. Making it...")
     intersection_points, intersection_indices, segment_ends = cross_point(layers[0], seg_length, quiet=True, bar_len = 100)
