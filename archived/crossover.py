@@ -89,11 +89,11 @@ if interested:
     # print(f"difference: {my_depth_1 - my_depth_2} m")
 
     # loop through all intersections and print the depth at each
-    # for i in range(len(intersect_indices)):
-    #     my_depth_1 = twtt_to_depth(twtt_at_intersect[i][0], my_refractive_index)
-    #     my_depth_2 = twtt_to_depth(twtt_at_intersect[i][1], my_refractive_index)
-    #     print(f"depth at crossover point {i} on segment 1: {my_depth_1} m")
-    #     print(f"depth at crossover point {i} on segment 2: {my_depth_2} m")
+    # for index in range(len(intersect_indices)):
+    #     my_depth_1 = twtt_to_depth(twtt_at_intersect[index][0], my_refractive_index)
+    #     my_depth_2 = twtt_to_depth(twtt_at_intersect[index][1], my_refractive_index)
+    #     print(f"depth at crossover point {index} on segment 1: {my_depth_1} m")
+    #     print(f"depth at crossover point {index} on segment 2: {my_depth_2} m")
     #     print(f"difference: {my_depth_1 - my_depth_2} m")
 
     print(f"crossover point lat-long: {intersection_points[0]}")

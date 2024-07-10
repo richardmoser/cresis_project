@@ -152,7 +152,7 @@ def doit(season, flight):
     for i in range(len(intersection_indices)):
         # convert the lat-lon point to xy and then to indices
         lat, lon = intersection_points[i]
-        # print(f"lat-lon {i}: \t\t{lat[0], lon[0]}")
+        # print(f"lat-lon {index}: \t\t{lat[0], lon[0]}")
 
         x, y = latlon_to_xy(lat, lon)
         # print(f"x: {x}, y: {y}")
@@ -178,24 +178,24 @@ def doit(season, flight):
 
         # find the heading of the first segment
         plane_heading_1.append(find_heading(layers[0], intersection_indices[i][0]))
-        # print(f"heading_1[{i}]: {plane_heading_1[i]}")
+        # print(f"heading_1[{index}]: {plane_heading_1[index]}")
 
         # find the heading of the second segment
         plane_heading_2.append(find_heading(layers[0], intersection_indices[i][1]))
-        # print(f"heading_2[{i}]: {plane_heading_2[i]}")
+        # print(f"heading_2[{index}]: {plane_heading_2[index]}")
 
-        # plane_flow_angle = min(abs(plane_heading_1[i] - flow_heading[i]), abs(plane_heading_2[i] - flow_heading[i]))
+        # plane_flow_angle = min(abs(plane_heading_1[index] - flow_heading[index]), abs(plane_heading_2[index] - flow_heading[index]))
         plane_flow_angle = max(abs(plane_heading_1[i] - flow_heading[i]), abs(plane_heading_2[i] - flow_heading[i]))
 
         # print(f"plane_flow_angle: {plane_flow_angle}")
         angle.append(plane_flow_angle)
 
         # find the twtt at the crossover point on both segments
-        # print(f"twtt{i}: {twtt[i]}")
-        # delta_twtt.append(twtt[i][1] - twtt[i][0])
+        # print(f"twtt{index}: {twtt[index]}")
+        # delta_twtt.append(twtt[index][1] - twtt[index][0])
         # append the absolute value of the twtt
         delta_twtt.append(abs(twtt[i][1] - twtt[i][0]))
-        # print(f"delta_twtt[{i}]: {delta_twtt[i]}")
+        # print(f"delta_twtt[{index}]: {delta_twtt[index]}")
 
         print(section_break)
 
@@ -256,8 +256,8 @@ def doit(season, flight):
                     label='segment 1')  # angle - heading
 
     # for each point, print the index and the delta_twtt
-    # for i in range(len(delta_twtt)):
-    #     plt.text(np.abs(np.cos(np.radians(np.array(flow_heading[i]) - np.array(plane_heading_1[i])))), delta_twtt[i], f"{i}: {delta_twtt[i]}")
+    # for index in range(len(delta_twtt)):
+    #     plt.text(np.abs(np.cos(np.radians(np.array(flow_heading[index]) - np.array(plane_heading_1[index])))), delta_twtt[index], f"{index}: {delta_twtt[index]}")
 
     # plt.xlabel(" |cos(angle - heading)| * |velocity|")
     # plt.xlabel(" |cos(angle - heading)|")
