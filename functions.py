@@ -55,6 +55,7 @@ def debug_print(*args):
         print(arg, end="")
     print(RESET)
 
+
 def mat_pickler_layerData(season, flight, testing_mode=False, readout=False, save=True, plot_layer=False):
     print("Reading data files...")
     print(section_break)
@@ -575,7 +576,7 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
     layer1 = Layer(layer1_name, gps_time, layer1_id, lat, lon, layer1_quality, layer1_twtt, layer1_type)
     layer2 = Layer(layer2_name, gps_time, layer2_id, lat, lon, layer2_quality, layer2_twtt, layer2_type)
 
-
+    import time
     corrected = False
     if convert_xy:
         start = time.time()
@@ -1113,11 +1114,17 @@ def cross_point(layer, seg_length, quiet=False, bar_len=20):
                         # intersections.append([intersection_points])
                         # segment_ends.append([[path_segments[first_seg][0], path_segments[first_seg][1], index1],
                         #                      [path_segments[sec_seg][0], path_segments[sec_seg][1], index2]])
-                        segment_ends.append([[path_segments1[first_seg][0], path_segments1[first_seg][1], index1],
-                                             [path_segments2[sec_seg][0], path_segments2[sec_seg][1], index2]])
+                        # segment_ends.append([[path_segments1[first_seg][0], path_segments1[first_seg][1], index1],
+                        #                      [path_segments2[sec_seg][0], path_segments2[sec_seg][1], index2]])
+                        segment_ends.append([[path_segments1[first_seg], index1, index1 + 1],
+                                              [path_segments2[sec_seg], index2, index2 + 1]])
+
+                        # debug_print(BRIGHT_BLUE, f"\npath_segments1: {path_segments1[first_seg]}\n"
+                        #                          f"path_segments2: {path_segments2[sec_seg]}\n\n")
 
                         # fine_intersections.append([intersection_points[0][0], intersection_points[1][0]])
                         fine_intersections.append([intersection_points[0], intersection_points[1]])
+
 
                         # fine_intersections are the first two points of the segment_ends list, index.e. two endpoints on
                         # opposing legs of the X. segment_ends are all four points of the X.
@@ -1230,6 +1237,7 @@ def average_slope_around_index(layer, index, window_size=100):
     twtt_ave_before = 0
     twtt_ave_after = 0
 
+    # uses twtt and not corrected_twtt → shows slope correctly. i.e. not normalized to surface
     for i in range(index - window_size, index):
         dist_ave_before += latlon_dist((layer.lat[i], layer.lon[i]), (layer.lat[i + 1], layer.lon[i + 1]))
         twtt_ave_before += layer.twtt[i]
@@ -1981,8 +1989,43 @@ def iceflow_data_file_loader():
     that is used to store multidimensional data. This file contains the ice flow velocity data for Antarctica.
     :return: the iceflow data in a readable format
     """
-    iceflow_file = Dataset("C:\\Users\\moser\\Documents\\cresis\\iceflow\\antarctic_ice_vel_phase_map_v01.nc", "r")
+    file_name = f"C:\\Users\\{username}\\Documents\\cresis\\iceflow\\antarctic_ice_vel_phase_map_v01.nc"
+    iceflow_file = Dataset(file_name, "r")
 
+    print(iceflow_file.variables.keys())
+
+    def serialize_variable(var):
+        info = {
+            "type": str(var.dtype),
+            "dimensions": var.dimensions,
+            "shape": var.shape,
+            "attributes": {attr: var.getncattr(attr) for attr in var.ncattrs()}
+        }
+        return info
+
+    dir = f"C:\\Users\\{username}\\Desktop\\cresis_project\\iceflow\\"
+
+    # Write keys and metadata to a text file with UTF-8 encoding
+    # with open("iceflow_keys.txt", "w", encoding="utf-8") as file:
+    with open(f"{dir}iceflow_key_data.txt", "w", encoding="utf-8") as file:
+        file.write(f"file {file_name} updated on {datetime.datetime.now().replace(microsecond=0)}\n\n\n")
+        for key in iceflow_file.variables.keys():
+            file.write(f"Key: {key}\n")
+            var_info = serialize_variable(iceflow_file.variables[key])
+            # Write the variable type, dimensions, and shape
+            file.write(f"\ttype: {var_info['type']}\n")
+            file.write(f"\tdimensions: {var_info['dimensions']}\n")
+            file.write(f"\tshape: {var_info['shape']}\n")
+            # Write the attributes
+            file.write(f"\tattributes:\n")
+            for attr, value in var_info['attributes'].items():
+                file.write(f"\t\t{attr}: {value}\n")
+            # Optionally write the data
+            # file.write(f"\tdata: {var_info['data']}\n")
+            file.write("\n")
+            # print(f"key: {key}\n{var_info}\n\n")
+
+    file.close()
     # print(iceflow_file.variables.keys())
     # print()
 
@@ -2301,7 +2344,7 @@ def xy_to_nearest_unmasked_index(x, y, iceflow_data, max_radius=10, printout=Fal
             min_y_index = y_index_iterator
             # technically this isn't distance as much as it is how close the indices are to each other
 
-    print(f"latlon of nearest unmasked: {iceflow_data[4][min_x][min_y], iceflow_data[5][min_x][min_y]}")
+    # print(f"latlon of nearest unmasked: {iceflow_data[4][min_x][min_y], iceflow_data[5][min_x][min_y]}")
     return min_x_index, min_y_index
 
 

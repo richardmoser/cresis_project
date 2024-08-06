@@ -25,15 +25,15 @@ season = "2016_Antarctica_DC8"
 # flight = "20181109_01"
 # flight = "20181112_02"  # the problem flight
 # plots fake crossovers along the curved path
-# flight = "20161024_05"
-flight = "20161111_05"
+flight = "20161024_05"
+# flight = "20161111_05"
 # probably too close to the coast to be useful
 # flight = "20161024_05"
 # flight = "20141026_06"
     # this one is 1/3 of an orbit and produces a bunch of bunk crossoversflight = "20230127_01"
 # ~ 1/3 of an orbit of the pole and yet the angle plot looks like hot garbage
 # file_name = "layer_export_" + flight + ".pickle"
-file_name = "C:\\Users\\rj\\Documents\\cresis_project\\pickle_jar\\layer_export_" + flight + ".pickle"
+file_name = f"C:\\Users\\{username}\\Desktop\\cresis_project\\pickle_jar\\layer_export_" + flight + ".pickle"
 testing = False
 
 if not os.path.isfile(file_name):  # if the file does not exist
@@ -45,7 +45,7 @@ else:
     layers = read_layers(file_name)  # read in the layers from the pickle file
     print(f"File {file_name} loaded.")
 
-# filename = f"C:\\Users\\rj\\Documents\\cresis_project\\pickle_jar\\{season}_{flight}_crossover_points.pickle"
+# filename = ff"C:\\Users\\{username}\\Desktop\\cresis_project\\pickle_jar\\{season}_{flight}_crossover_points.pickle"
 
 # intersection_points, intersection_indices, segment_ends = cross_point(layers[0], seg_length, quiet=True)
 # with open(filename, 'wb') as file:
@@ -55,7 +55,7 @@ else:
 # print(f"intersection_indices and intersection_points saved to {filename}")
 
 force_redo_intersections = False
-filename = f"C:\\Users\\rj\\Documents\\cresis_project\\pickle_jar\\{season}_{flight}_crossover_points.pickle"
+filename = f"C:\\Users\\{username}\\Desktop\\cresis_project\\pickle_jar\\{season}_{flight}_crossover_points.pickle"
 if not os.path.isfile(filename) or force_redo_intersections:  # if the file does not exist
     print(f"File {filename} does not exist. Making it...")
     intersection_points, intersection_indices, segment_ends = cross_point(layers[0], seg_length, quiet=True)
@@ -163,7 +163,7 @@ def plot_layers_3d_xy(layers, season, flight, intersect_indices, seg_ends):
                 label='top seg. 2', c='grey',
                 linewidth=1)
 
-    loop_range = len(intersection_indices) - 1
+    loop_range = len(intersection_indices)
     # loop_range = 1
 
     # def animate(offset):
@@ -193,6 +193,11 @@ def plot_layers_3d_xy(layers, season, flight, intersect_indices, seg_ends):
                    layers[1].y[intersect_indices[index][1]],
                    -1 * layers[1].depth[intersect_indices[index][1]],
                    c='black', marker='o')
+        ax.text(layers[1].x[intersect_indices[index][0]],
+                layers[1].y[intersect_indices[index][0]],
+                -1 * layers[1].depth[intersect_indices[index][0]],
+                f"{index + 1}", color='blue')
+
 
     # plot all the points in layers[1]
     if plot_all:

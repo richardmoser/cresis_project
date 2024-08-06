@@ -50,18 +50,18 @@ python dependencies (incomplete list):
         # the latitude of the first endpoint in the first leg of crossing 0
         segment_ends[0][0][0][0]: -81.11816244525122
       ```
-  - iceflow_data: List (nesting level = 3*)
-    - a list with all of the iceflow data for the continent
-    - in a completely different dataset and format so most of it needs convertin
-    - first index is the attribute
-      - 0:x, 1:y, 2:v_x, 3:v_y, 4:latitude, 5:longitude
-      - just setting these equal to variables is probably the easiest way to work with them
-    - second index is the x index*
-      - for y this is actually the y index
-    - third index is the y index
-      - x and y do not have a third index
-    - e.g.
-    - velocity (in x and y) is in meters per year
+- iceflow_data: List (nesting level = 3*)
+  - a list with all of the iceflow data for the continent
+  - in a completely different dataset and format so most of it needs convertin
+  - first index is the attribute
+    - 0:x, 1:y, 2:v_x, 3:v_y, 4:latitude, 5:longitude
+    - just setting these equal to variables is probably the easiest way to work with them
+  - second index is the x index*
+    - for y this is actually the y index
+  - third index is the y index
+    - x and y do not have a third index
+  - e.g.
+  - velocity (in x and y) is in meters per year
 
 ## Things That Need Verification From SME's 
 And by SME I mean probably mostly John
