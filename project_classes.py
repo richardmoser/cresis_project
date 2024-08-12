@@ -86,6 +86,7 @@ class Crossover:
             'ice_flow_offset': self.ice_flow_offset
         }
 
+
 class Layer:
     """
     A class to represent a layer in the CSARP_layer mat file.
@@ -133,6 +134,7 @@ class Twtt_Posit:
         self.season = season
         self.flight = flight
         self.indices = indices
+
 
 class Cross:
     def __init__(self):

@@ -624,22 +624,24 @@ def layerize_h5py(data_file, attribute_file, dir, convert_xy):
     return layers
 
 
-def read_layers(file_name):
+def read_layers(file_name, quiet=False):
     """
     :param file_name: the name of the pickle file containing the layers, e.g. "layer_export_20181030_01.pickle"
     :return: a list of Layer objects from the pickle file (usually Surface, your custom layer(s), and Bottom)
     """
-    print("Reading pickle file...")
-    print(section_break)
+    if not quiet:
+        print("Reading pickle file...")
+        print(section_break)
     # read layers.pickle into a list of Layer objects
 
     # file_name = 'layers.pickle'
 
     with open(file_name, 'rb') as f:
         layers = pickle.load(f)
-    for layer in layers:
-        print(layer.layer_name)
-    print(section_break + "\n")
+    if not quiet:
+        for layer in layers:
+            print(layer.layer_name)
+        print(section_break + "\n")
     return layers
 
 
